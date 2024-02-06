@@ -1,8 +1,12 @@
-import express, { Router } from 'express';
+import express, { Router , Request,Response } from 'express';
+import { signUp, update } from '../controllers/authController';
+import { upload } from '../utils/multer';
 
 const router: Router = express.Router();
 
-// router.post('/login', login)
-// router.post('/signup', signup)
-// router.post('/edituser',editUser)
+
+// router.get('/login',login)
+router.post('/signup',signUp)
+router.post('/update' ,upload.single("profileImg"),update)
 export default router;
+
