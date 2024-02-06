@@ -25,18 +25,3 @@ const storage = multer.diskStorage({
 
 export const upload = multer({ storage: storage });
 
-// import { v4 as uuidv4 } from 'uuid';
-
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, './src/public/uploads')
-//   },
-//   filename: function (req, file, cb) {
-//     // Generate a unique file name using uuid
-//     const uniqueFileName = uuidv4() + '-' + file.originalname;
-//     req.body.profileImg = uniqueFileName;
-//     cb(null, uniqueFileName)
-//   }
-// })
-
-// export const upload = multer({ storage: storage })
