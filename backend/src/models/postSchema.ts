@@ -1,6 +1,6 @@
 import {Schema,model,Document} from 'mongoose'
 
-const usersSchema = new Schema({
+const postSchema = new Schema({
         UserId: String,
         comments: Array,
         like : Array,
@@ -10,7 +10,7 @@ const usersSchema = new Schema({
         time:String,
 });
 
-const users  = model("users",usersSchema)
+const posts  = model("posts",postSchema)
 
-export default users
+export default posts
     

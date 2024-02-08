@@ -3,23 +3,22 @@ import multer from "multer";
 import users from "../models/usersSchema";
 
 const storage = multer.diskStorage({
-
+  
   destination: function (
     req: Request,
     file: Express.Multer.File,
     cb: (error: Error | null, destination: string) => void
   ) {
-    cb(null, "./src/public/uploads");
+    if(file.fieldname === "profileImg")cb(null, "./src/public/uploads/profile");
+    if(file.fieldname === "postsImg")cb(null, "./src/public/uploads/posts");
   },
   filename: async function(
     req: Request,
     file: Express.Multer.File,
     cb: (error: Error | null, filename: string) => void
   ) {
-    const user = await users.findOne({UserId : req.body.UserId})
-    const fileName = user?.UserId +'.'+ file.originalname.split('.').pop()
-    req.body.profileImg = fileName;
-    cb(null,fileName);
+    req.body.profileImg = file.originalname;
+    cb(null,file.originalname);
   },
 });
 
