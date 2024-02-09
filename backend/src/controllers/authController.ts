@@ -5,13 +5,27 @@ import fs from "fs";
 import jwt from "jsonwebtoken";
 import { SECRET_KEY } from "../middleware/middleware";
 
-type User = {
+export type User = {
   email?: string;
   password?: string;
   profileImg?: string;
   username?: string;
   UserId?: string;
 };
+
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const allUsers : User[] =  await users.find();
+    return res.status(200).json({
+      success: true,
+      data: allUsers,
+      message: "Requested",
+    });
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 
 export const signUp = async (req: Request, res: Response) => {
   try {

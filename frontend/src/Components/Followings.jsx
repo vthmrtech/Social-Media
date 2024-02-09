@@ -65,7 +65,7 @@ const Followings = () => {
                                         <img src={x.profileImg ?? profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
                                         <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                     </div>
-                                    <div>
+                                    <div className='d-flex'>
                                         <div>
                                             <Button variant='contained' color='error' onClick={() => unfollow(x)}>UnFollow</Button>
                                         </div>

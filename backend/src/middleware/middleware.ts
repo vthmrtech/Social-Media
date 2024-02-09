@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import dotenv from "dotenv";
+import users from "../models/usersSchema";
+import { User } from "../controllers/authController";
 dotenv.config();
 interface DecodedToken {
   email: string;
@@ -13,7 +15,7 @@ export interface CustomRequest extends Request {
 export const SECRET_KEY: Secret = "Vrut@2401";
 
 const authMiddleware = () =>
-  (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const authorization: string | undefined = req.get("Authorization");
     if (!authorization) {
       return res.status(401).json({ message: "Token Required!!!!" });
@@ -26,7 +28,12 @@ const authMiddleware = () =>
     } catch (error) {
       return res.status(401).json({ message: "Something Went Wrong" });
     }
-    
+
+    const user : User | null = await users.findOne({UserId : req.body.UserId});
+    if(user?.email !== decoded.email){
+      return res.status(401).json({ message: "Unauthorized !!!!" });
+
+    }
     
     (req as CustomRequest).user = decoded.email;
     next();
