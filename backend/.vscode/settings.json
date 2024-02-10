@@ -4,6 +4,7 @@
                 "cpassword",
                 "fieldname",
                 "jwtauth",
+                "Unfollowed",
                 "Vrut"
         ]
 }

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import follow from "../models/followSchema";
 import users from "../models/usersSchema";
 
-type follow = {
+export type follow = {
   receiverId?: string;
   senderId?: string;
   status?: string;
@@ -17,16 +17,21 @@ export const sentRequest = async (req: Request, res: Response) => {
     if (otherUser) {
       const request: follow | null = await follow.findOne({
         receiverId: req.body.sendTo,
-          senderId: req.body.UserId,
-          status: "requested",
+        senderId: req.body.UserId,
+        status: "requested",
       });
-      
+
       const accepted: follow | null = await follow.findOne({
         receiverId: req.body.sendTo,
-          senderId: req.body.UserId,
-          status: "accepted",
+        senderId: req.body.UserId,
+        status: "accepted",
       });
-      if (!(request || accepted)) {
+      const blocked: follow | null = await follow.findOne({
+        receiverId: req.body.sendTo,
+        senderId: req.body.UserId,
+        status: "blocked",
+      });
+      if (!(request || accepted || blocked)) {
         const request: follow | any = await follow.create({
           receiverId: req.body.sendTo,
           senderId: req.body.UserId,
@@ -38,14 +43,13 @@ export const sentRequest = async (req: Request, res: Response) => {
           data: request,
           message: "Requested",
         });
-      // } else if(blocked) {
-      //   return res.status(401).json({
-      //     success: false,
-      //     data: "",
-      //     message: "Can't Send Request",
-      //   });
-      }
-       else {
+      } else if (blocked) {
+        return res.status(401).json({
+          success: false,
+          data: "",
+          message: "Can't Send Request",
+        });
+      } else {
         return res.status(401).json({
           success: false,
           data: "",
@@ -144,21 +148,21 @@ export const blocked = async (req: Request, res: Response) => {
   }
 };
 
-export const blocklist =  async (req: Request, res: Response) => {
+export const blocklist = async (req: Request, res: Response) => {
   try {
     const blocked = await follow.find({
       receiverId: req.body.UserId,
-          status: "blocked",
-    })
+      status: "blocked",
+    });
     return res.status(200).json({
       success: true,
       data: blocked,
       message: "Got all Blocked Users",
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 
 export const deleteRequest = async (req: Request, res: Response) => {
   try {
@@ -167,18 +171,12 @@ export const deleteRequest = async (req: Request, res: Response) => {
       senderId: req.body.receivedFrom,
       status: "requested",
     });
-    const accepted: follow | null = await follow.findOne({
-      receiverId: req.body.UserId,
-      senderId: req.body.receivedFrom,
-      status: "accepted",
-    });
-    if (request || accepted) {
-      const deleteReq : any = await follow.deleteOne(
-        {
-          receiverId: req.body.UserId,
-          senderId: req.body.receivedFrom,
-        }
-      );
+    if (request) {
+      const deleteReq: any = await follow.findOneAndDelete({
+        receiverId: req.body.UserId,
+        senderId: req.body.receivedFrom,
+        status: "requested",
+      });
       return res.status(200).json({
         success: true,
         data: deleteReq,
@@ -190,6 +188,98 @@ export const deleteRequest = async (req: Request, res: Response) => {
         data: "",
         message: "No requests found to be Deleted ",
       });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const unBlock = async (req: Request, res: Response) => {
+  try {
+    const request: follow | null = await follow.findOne({
+      receiverId: req.body.UserId,
+      senderId: req.body.receivedFrom,
+      status: "blocked",
+    });
+    if (request) {
+      const deleteReq: any = await follow.findOneAndDelete({
+        receiverId: req.body.UserId,
+        senderId: req.body.receivedFrom,
+        status: "blocked",
+      });
+      return res.status(200).json({
+        success: true,
+        data: deleteReq,
+        message: "Unblocked ",
+      });
+    } else {
+      return res.status(401).json({
+        success: false,
+        data: "",
+        message: "User wasn't blocked",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const removeFollower = async (req: Request, res: Response) => {
+  try {
+    const accept: follow | null = await follow.findOne({
+      receiverId: req.body.UserId,
+      senderId: req.body.removeFollower,
+      status: "accepted",
+    });
+    if (accept) {
+      const deleteReq: any = await follow.deleteOne({
+        receiverId: req.body.UserId,
+      senderId: req.body.removeFollower,
+      status: "accepted",
+      });
+      return res.status(200).json({
+        success: true,
+        data: deleteReq,
+        message: "follower Removed ",
+      });
+    }
+    else{
+      return res.status(401).json({
+        success :false,
+        data:"",
+        message :"That person is not following you "
+      })
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const unFollow = async (req: Request, res: Response) => {
+  try {
+    const accept: follow | null = await follow.findOne({
+      receiverId: req.body.unFollow,
+      senderId: req.body.UserId,
+      status: "accepted",
+    });
+    if (accept) {
+      const deleteReq: any = await follow.deleteOne({
+        receiverId: req.body.unFollow,
+      senderId: req.body.UserId,
+      status: "accepted",
+      });
+      return res.status(200).json({
+        success: true,
+        data: deleteReq,
+        message: "Unfollowed",
+      });
+    }
+    else{
+      return res.status(401).json({
+        success :false,
+        data:"",
+        message :"You are not following that person"
+      })
     }
   } catch (error) {
     console.log(error);

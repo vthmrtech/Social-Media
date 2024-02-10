@@ -3,6 +3,7 @@ import posts from "../models/postSchema";
 import users from "../models/usersSchema";
 import { User } from "./authController";
 import { v4 as uuid } from "uuid";
+import follow from "../models/followSchema";
 
 type comments = {
   UserId?: string;
@@ -19,6 +20,57 @@ type post = {
   postImg?: string;
   time?: string;
 };
+
+export const getUserPost = async (req: Request, res: Response) => {
+  try {
+    const getPosts : post[] | null = await posts.find({
+      UserId:req.body.UserId
+    })
+    return res.status(200).json({
+      success: true,
+      data: getPosts,
+      message: `Got All Posts`,
+    });
+  } catch (error) {
+    console.log(error)
+  }
+} 
+
+export const getUserFollowingPosts = async (req: Request, res: Response) => {
+  try {
+
+    const followingPosts : any = await follow.aggregate([
+      {
+        $match: {
+          senderId: req.body.UserId,
+          status: "accepted",
+        },
+      },
+      {
+        $lookup: {
+          from: "posts",
+          localField: "receiverId",
+          foreignField: "UserId",
+          as: "userPosts",
+        },
+      },
+      { $unwind: "$userPosts" }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: followingPosts,
+      message: "Got posts from followed users",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error occurred while fetching posts from followed users",
+    });
+  }
+};
+
 
 export const addPosts = async (req: Request, res: Response) => {
   try {
