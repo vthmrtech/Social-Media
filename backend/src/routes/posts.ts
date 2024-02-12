@@ -6,7 +6,7 @@ const router: Router = express.Router();
 
 
 router.post('/addPosts',upload.single("postImg"),addPosts)
-router.delete('/deletePosts',upload.single("postImg"),deletePosts)
+router.delete('/deletePosts',deletePosts)
 router.post('/likeDislike',likeDislike)
 router.post('/addComment',addComment)
 router.delete('/deleteComment',deleteComment)

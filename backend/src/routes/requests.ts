@@ -6,7 +6,7 @@ const router: Router = express.Router();
 
 router.post('/sentRequest',sentRequest)
 router.post('/accepted',accepted)
-router.post('/blocked',blocked)
+router.post('/blockUser',blocked)
 router.post('/unblock',unBlock)
 router.delete('/deleteRequest',deleteRequest)
 router.get('/allFollowers',followers)

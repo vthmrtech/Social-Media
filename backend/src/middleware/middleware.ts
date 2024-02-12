@@ -8,9 +8,7 @@ interface DecodedToken {
   email: string;
   UserId: string;
 }
-export interface CustomRequest extends Request {
-  user: string | JwtPayload;
-}
+
 
 export const SECRET_KEY: Secret = "Vrut@2401";
 
@@ -35,7 +33,6 @@ const authMiddleware = () =>
 
     }
     
-    (req as CustomRequest).user = decoded.email;
     next();
   };
 

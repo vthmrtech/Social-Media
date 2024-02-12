@@ -74,10 +74,7 @@ export const getUserFollowingPosts = async (req: Request, res: Response) => {
 
 export const addPosts = async (req: Request, res: Response) => {
   try {
-    const user: User | null = await users.findOne({
-      UserId: req.body.UserId,
-    });
-    if (user) {
+    
       const newPost: post | any = await posts.create({
         ...req.body,
         postId: uuid(),
@@ -87,13 +84,7 @@ export const addPosts = async (req: Request, res: Response) => {
         data: newPost,
         message: `New Post Added`,
       });
-    } else {
-      return res.status(401).json({
-        success: false,
-        data: [],
-        message: `User Not Found`,
-      });
-    }
+    
   } catch (error) {
     console.log(error);
   }
