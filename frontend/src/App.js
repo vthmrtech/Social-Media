@@ -15,9 +15,8 @@ export let Context = createContext()
 
 function App() {
   const [login, setLogin] = useState(JSON.parse(localStorage.getItem("isLogin")))
-  const allUsers = useSelector((state) => state.users)
-  const [loginId, setloginId] = useState(JSON.parse(localStorage.getItem("loginId")))
-  const [loginUser, setloginUser] = useState(allUsers.find((x) => x.UserId == loginId) || {})
+  const loginUser = useSelector((state) => state.users.data)
+  console.log(loginUser)
   const [userName, setuserName] = useState(loginUser?.username)
 
   useEffect(() =>{

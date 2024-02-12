@@ -1,36 +1,37 @@
 import { createSlice } from "@reduxjs/toolkit";
-import uuid4 from "uuid4";
+import {  loginAccount, signup } from "../actions/useractions";
 
 const Users = createSlice({
-    name: "users",
-    initialState: JSON.parse(localStorage.getItem("users")) || [],
-    reducers: {
-        addUser(state, action) {
-            let data = {
-                ...action.payload,
-                
-            }
-            state.push(data);
-            localStorage.setItem("users", JSON.stringify(state))
-        },
+  name: "users",
+  initialState: {
+    isLoading: false,
+    data: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(signup.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(signup.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.data = action.payload;
+      })
+      .addCase(signup.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(loginAccount.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(loginAccount.fulfilled, (state, action) => {
+        state.data = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(loginAccount.rejected, (state) => {
+        state.isLoading = false;
+      });
+  },
+});
 
-        editUser(state, action) {
-            console.log(action.payload)
-            
-            let data = {
-                ...state.find((x) => x.UserId == action.payload.UserId),
-                ...action.payload,
-            }
-            state.splice(state.findIndex((x) => x.UserId == action.payload.UserId), 1, data)
-            localStorage.setItem("users", JSON.stringify(state))
-        }
-        
-    }
-})
 
-
-
-export const { addUser, editUser } = Users.actions
-
-export {Users}
-
+export { Users };

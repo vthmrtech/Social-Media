@@ -2,10 +2,10 @@ import React, { useContext, useState } from 'react'
 import { Form } from 'react-bootstrap'
 import profile from "../Assets/img/profile.jpg"
 import { Box, Button, Typography } from '@mui/material'
-import { editUser } from '../Store/Slice/UsersSlice'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { Context } from '../App'
+import { updateAccount } from '../Store/actions/useractions'
 const OnBoarding = () => {
     let isLogin = useContext(Context)
     const [error, seterror] = useState({})
@@ -82,7 +82,7 @@ const OnBoarding = () => {
         if (Object.keys(error).length == 0) {
             onboarding['UserId'] = JSON.parse(localStorage.getItem("loginId"))
             isLogin.setuserName(onboarding.username)
-            dispatch(editUser(onboarding))
+            dispatch(updateAccount(onboarding))
             navigate('/profile')
         }
 

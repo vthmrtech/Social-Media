@@ -6,7 +6,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import { Box, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
-import { loginData } from '../Store/Slice/LoginUserSlice'
+import { loginAccount } from '../Store/actions/useractions'
 
 
 const Login = () => {
@@ -54,7 +54,7 @@ const Login = () => {
                     });
                     loginObj['userId'] = login.UserId
                     e.target.reset()
-                    dispatch(loginData(loginObj))
+                    dispatch(loginAccount(loginObj))
                     setloginObj({})
                     localStorage.setItem('isLogin', true)
                     isLogin.setLogin(true)

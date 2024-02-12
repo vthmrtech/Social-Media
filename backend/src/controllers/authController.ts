@@ -71,6 +71,15 @@ export const signUp = async (req: Request, res: Response) => {
   }
 };
 
+export const loginUser  = async (req :  Request, res :Response) => {
+  const user = await users.findOne({UserId : req.body.UserId});
+  return res.status(200).json({
+    success: true,
+    data: user,
+    message: "User Found",
+  });
+}
+
 
 export const login = async (req: Request, res: Response) => {
   try {

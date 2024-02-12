@@ -196,7 +196,7 @@ const RequestsPage = () => {
                                             <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                         </div>
                                         {
-                                            allUsers.find((a) => a.UserId == loginUser).UserId == x.UserId
+                                            all//d((a) => a.UserId == loginUser).UserId == x.UserId
                                                 ?
                                                 <>
                                                     <NavLink to='/profile'><Button variant='outlined' color='success' className='me-2'>View Profile</Button></NavLink>

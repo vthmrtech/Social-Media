@@ -89,8 +89,8 @@ const Home = () => {
                                             return <div className='p-1 w-25 ' >
                                                 <div className='border border-2' style={{ height: "351px" }}>
                                                     <div className='d-flex align-items-center gap-2'>
-                                                        <img src={users.find((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
-                                                        <Typography variant='h6' className='fw-bold'>{users.find((a) => a.UserId == x.UserId).username}</Typography>
+                                                        <img src={//d((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
+                                                        <Typography variant='h6' className='fw-bold'>{//d((a) => a.UserId == x.UserId).username}</Typography>
                                                     </div>
                                                     <img src={x.postImg} alt="" style={{ minHeight: "270px", maxHeight: "270px" }} width="100%" />
                                                     <div className='px-3 d-flex justify-content-between'>
@@ -124,9 +124,9 @@ const Home = () => {
                             openComment[1] && posts.find((a) => a.postId == openComment[1]['postId'])['comments'].map((x) => {
                                 return <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, justifyContent: "space-between" }}>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                        <img src={users.find((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
+                                        <img src={//d((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
                                         <div>
-                                            <Typography variant='h6' className='fw-bold'>{users.find((a) => a.UserId == x.UserId).username}</Typography>
+                                            <Typography variant='h6' className='fw-bold'>{//d((a) => a.UserId == x.UserId).username}</Typography>
                                             <Typography>{x.comment}</Typography>
                                         </div>
                                     </Box>

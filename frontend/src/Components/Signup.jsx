@@ -8,6 +8,7 @@ import { Box, Typography } from '@mui/material'
 import { Facebook, Google } from '@mui/icons-material'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Context } from '../App'
+import { signup } from '../Store/actions/useractions'
 
 
 
@@ -70,9 +71,8 @@ const Signup = () => {
     seterror({ ...error })
     e.preventDefault()
     if (Object.values(error).filter((x) => x != "").length == 0) {
-      signUpObj['UserId'] = uuid4()
       setsignUpObj({ ...signUpObj })
-      dispatch(addUser(signUpObj))
+      dispatch(signup(signUpObj))
       e.target.reset();
       localStorage.setItem('isLogin', true)
       isLogin.setLogin(true)

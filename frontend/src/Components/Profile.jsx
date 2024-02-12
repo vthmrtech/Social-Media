@@ -9,11 +9,11 @@ import uuid4 from 'uuid4';
 import Followers from './Followers';
 import Followings from './Followings';
 import { addComment, addPost, deleteComments, deletePost, liked } from '../Store/Slice/PostsSlice';
-import { editUser } from '../Store/Slice/UsersSlice';
 import { Favorite } from '@mui/icons-material';
 import profile from "../Assets/img/profile.jpg"
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { updateAccount } from '../Store/actions/useractions';
 
 
 
@@ -120,7 +120,7 @@ const Profile = () => {
         seterror({ ...error })
         if (Object.keys(error).length == 0) {
 
-            dispatch(editUser(editObj))
+            dispatch(updateAccount(editObj))
             handleCloseProfile();
             getuserProfile();
         }
@@ -405,9 +405,9 @@ const Profile = () => {
                             openComment[1] && posts.find((a) => a.postId == openComment[1]['postId'])['comments'].map((x) => {
                                 return <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, justifyContent: "space-between" }}>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                        <img src={users.find((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
+                                        <img src={//d((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
                                         <div>
-                                            <Typography variant='h6' className='fw-bold'>{users.find((a) => a.UserId == x.UserId).username}</Typography>
+                                            <Typography variant='h6' className='fw-bold'>{//d((a) => a.UserId == x.UserId).username}</Typography>
                                             <Typography>{x.comment}</Typography>
                                         </div>
                                     </Box>
