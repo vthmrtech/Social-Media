@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {  loginAccount, signup } from "../actions/useractions";
+import { loginAccount, signup, updateAccount } from "../actions/useractions";
 
 const Users = createSlice({
   name: "users",
@@ -29,9 +29,15 @@ const Users = createSlice({
       })
       .addCase(loginAccount.rejected, (state) => {
         state.isLoading = false;
-      });
+      })
+      .addCase(updateAccount.pending, (state, action) => {
+        state.isLoading = true;
+      })
+      .addCase(updateAccount.fulfilled, (state, action) =>{
+        state.data = action.payload;
+        state.isLoading = false;
+      })
   },
 });
-
 
 export { Users };
