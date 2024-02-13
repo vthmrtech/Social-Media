@@ -83,7 +83,6 @@ export const loginUser  = async (req :  Request, res :Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    
     const user :User | any = req.user
 
     const token = jwt.sign(
@@ -94,7 +93,6 @@ export const login = async (req: Request, res: Response) => {
       SECRET_KEY,
       { expiresIn: '1h' }
     );
-
     return res.status(200).json({
       success: true,
       user,
@@ -112,15 +110,21 @@ export const login = async (req: Request, res: Response) => {
 
 export const update = async (req: Request, res: Response) => {
   try {
-    const loginData :User | any = req.user
+    const loginData :User | any = await users.findOne({email: req.user})
 
       if (
         req.body.profileImg &&
+        
         loginData.profileImg &&
         loginData.profileImg !== req.body.profileImg
-      ) {
+        ) {
         fs.unlinkSync(`./src/public/uploads/profile/${loginData.profileImg}`);
       }
+      else if(req.body.profileImg == ""  && loginData.profileImg){
+        
+        fs.unlinkSync(`./src/public/uploads/profile/${loginData.profileImg}`);
+      }
+    
       const updateData = await users.findOneAndUpdate(
         {
           UserId: loginData.UserId,

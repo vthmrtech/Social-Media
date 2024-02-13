@@ -13,8 +13,10 @@ interface DecodedToken {
 export const SECRET_KEY: Secret = "Vrut@2401";
 
 const authMiddleware = () =>
-  async (req: Request, res: Response, next: NextFunction) => {
+async (req: Request, res: Response, next: NextFunction) => {
+    console.log("User email",req.body);
     const authorization: string | undefined = req.get("Authorization");
+
     if (!authorization) {
       return res.status(401).json({ message: "Token Required!!!!" });
     }
@@ -32,7 +34,7 @@ const authMiddleware = () =>
       return res.status(401).json({ message: "Unauthorized !!!!" });
 
     }
-    
+    req.user  = decoded.email
     next();
   };
 

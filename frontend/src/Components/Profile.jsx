@@ -8,12 +8,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import uuid4 from 'uuid4';
 import Followers from './Followers';
 import Followings from './Followings';
-import { addComment, addPost, deleteComments, deletePost, liked } from '../Store/Slice/PostsSlice';
 import { Favorite } from '@mui/icons-material';
 import profile from "../Assets/img/profile.jpg"
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { updateAccount } from '../Store/actions/useractions';
+import { addPosts, getUserPosts, likeDislike } from '../Store/actions/postAction';
 
 
 
@@ -25,18 +25,17 @@ const Profile = () => {
     const [openfollowModel, setopenfollowModel] = useState([false, ""])
     const [openComment, setopenComment] = useState([false, ""]);
     const [openProfile, setopenProfile] = useState(false);
-    const users = useSelector((state) => state.users)
-
-    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("loginId")))
+    const users = useSelector((state) => state.users.data)
+    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("user")))
     const [userprofile, setuserprofile] = useState({})
     const [editObj, setEditObj] = useState({})
     const [commentsObj, setcommentsObj] = useState({})
-    const allFollow = useSelector((state) => state.following)
-    const [following, setfollowing] = useState([])
-    const [followers, setfollowers] = useState([])
-    const posts = useSelector((state) => state.posts).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
+    const [displayImg, setdisplayImg] = useState("")
+    const [postImg, setpostImg] = useState("")
+
+    const posts = useSelector((state) => state.posts.data)
     const getuserProfile = () => {
-        setuserprofile(users?.find((x) => x.UserId === loginUser))
+        setuserprofile({...users})
 
     }
 
@@ -49,7 +48,10 @@ const Profile = () => {
     const handleOpenFollow = (x) => setopenfollowModel([true, x]);
     const handleCloseFollow = () => setopenfollowModel([false, ""]);
     useEffect(() => {
-        setEditObj({ ...users?.find((x) => x.UserId === loginUser) })
+        setEditObj({ ...loginUser })
+        if(loginUser.profileImg){
+            setdisplayImg(`http://localhost:4000/image/uploads/profile/${loginUser.profileImg}`)
+        }
     }, [userprofile])
 
 
@@ -57,13 +59,13 @@ const Profile = () => {
 
         if (e.target.type === "file") {
             if (e.target.files[0]?.type.includes("image")) {
-
-                editObj[e.target.name] = await toBase64(e.target.files?.[0])
+                setdisplayImg(await toBase64(e.target.files?.[0]))
+                editObj[e.target.name] = e.target.files?.[0]
                 delete error[e.target.name]
                 seterror({ ...error })
             }
             else {
-                editObj[e.target.name] = profile
+                setdisplayImg("")
                 error[e.target.name] = "Can Upload Only Image Files "
                 seterror({ ...error })
 
@@ -93,7 +95,6 @@ const Profile = () => {
 
         for (let x in editObj) {
             if (x !== "profileImg") {
-
                 if (editObj[x] == undefined || editObj[x] == "") {
                     error[x] = "Required*"
                 }
@@ -106,10 +107,10 @@ const Profile = () => {
         seterror({ ...error })
     }
 
-    const updateProfile = (e) => {
+    const updateProfile = async (e) => {
         e.preventDefault();
         for (let x in editObj) {
-            if (editObj[x] == undefined || editObj[x] == "") {
+            if ((editObj[x] == undefined || editObj[x] == "") && x != "__v" && x!= "profileImg" ) {
                 error[x] = "Required*"
             }
             else {
@@ -119,10 +120,18 @@ const Profile = () => {
         }
         seterror({ ...error })
         if (Object.keys(error).length == 0) {
+            let formData = new FormData();
+            for (let key in editObj) {
+              formData.append(key, editObj[key]);
+            }
+            console.log("updateProfile",editObj)
 
-            dispatch(updateAccount(editObj))
-            handleCloseProfile();
-            getuserProfile();
+            const response  = await dispatch(updateAccount(formData))
+            if(response.meta.requestStatus === "fulfilled"){
+
+                handleCloseProfile();
+                getuserProfile();
+            }
         }
 
     }
@@ -154,8 +163,8 @@ const Profile = () => {
     const post = async (e) => {
         if (e.target.type === "file") {
             if (e.target.files[0]?.type.includes("image")) {
-
-                postData[e.target.name] = await toBase64(e.target.files?.[0])
+                setpostImg(await toBase64(e.target.files[0]))
+                postData[e.target.name] = e.target.files?.[0]
                 delete error[e.target.name]
                 seterror({ ...error })
             }
@@ -173,35 +182,48 @@ const Profile = () => {
         }
 
         setpostData({ ...postData })
-        console.log("error", error)
     }
 
-    const addposts = () => {
+    const addposts = async () => {
         if (Object.keys(error).length == 0) {
 
-            postData['UserId'] = loginUser
+            postData['UserId'] = loginUser.UserId
             postData['postId'] = uuid4();
             postData['time'] = new Date()
             setpostData({ ...postData })
-            dispatch(addPost(postData))
-            setpostData({})
-            handleClose();
+            let formData = new FormData();
+            for (let key in postData) {
+              formData.append(key, postData[key]);
+            }
+            const response = await dispatch(addPosts(formData))
+            if(response.meta.requestStatus == "fulfilled"){
+                setpostImg("")
+                setpostData({})
+                handleClose();
+                dispatch(getUserPosts({ userId: loginUser.UserId}))
+
+            }
         }
 
     }
 
     useEffect(() => {
         getuserProfile()
+        dispatch(getUserPosts({ UserId :loginUser.UserId}))
     }, [])
+
+
 
     const [likeObj, setlikeObj] = useState({})
 
-    const like = (post, loginId) => {
-        likeObj['UserId'] = post.UserId
+    const like = async (post) => {
+        likeObj['UserId'] = loginUser.UserId
         likeObj['postId'] = post.postId
-        likeObj['loginId'] = loginId
         setlikeObj({ ...likeObj })
-        dispatch(liked(likeObj))
+        const response  = await dispatch(likeDislike(likeObj))
+        if(response.meta.requestStatus === "fulfilled"){
+            dispatch(getUserPosts({ UserId :loginUser.UserId}))
+        }
     }
 
     const toBase64 = (file) =>
@@ -214,7 +236,7 @@ const Profile = () => {
 
     const deletepost = (x) => {
 
-        dispatch(deletePost(x.postId))
+        // dispatch(deletePost(x.postId))
     }
 
 
@@ -230,7 +252,7 @@ const Profile = () => {
         commentsObj['postId'] = openComment[1].postId
         commentsObj['UserId'] = loginUser
         setcommentsObj({ ...commentsObj })
-        dispatch(addComment(commentsObj))
+        // dispatch(addComment(commentsObj))
         // handleCloseComment()
         setcommentsObj({})
     }
@@ -239,14 +261,14 @@ const Profile = () => {
         commentsObj['postId'] = openComment[1].postId
         commentsObj['commentId'] = x.commentId
         setcommentsObj({ ...commentsObj })
-        dispatch(deleteComments(commentsObj))
+        // dispatch(deleteComments(commentsObj))
     }
     const removeProfilePic = () => {
-        editObj['profileImg'] = profile
+        editObj['profileImg'] = ""
+        setdisplayImg("")
         setEditObj({ ...editObj })
     }
-
-    return (
+         return (
         <>
             <Modal open={openProfile}>
                 <Box sx={style}>
@@ -257,7 +279,7 @@ const Profile = () => {
                                 <div className='w-100 d-flex flex-column align-items-center' >
 
                                     <img
-                                        src={editObj.profileImg ?? profile}
+                                        src={displayImg != "" ? displayImg : profile}
                                         className="mt-3 me-5"
                                         style={{ maxWidth: "200px", borderRadius: "50% ", maxHeight: "200px", minWidth: "200px", minHeight: "200px" }}
                                         alt=''
@@ -265,7 +287,7 @@ const Profile = () => {
                                     <Form.Label className='fw-bold mt-2 me-5'>Profile Img</Form.Label>
                                     <label className='btn btn-light  mt-3 me-4' type='button' htmlFor='profile'>Upload Profile Pic</label>
                                     {
-                                        editObj['profileImg'] && editObj['profileImg'] != profile
+                                        editObj['profileImg'] && editObj['profileImg'] != ""
                                             ?
                                             <button className='btn btn-danger  mt-3 me-4' type='button' onClick={() => removeProfilePic()}>Remove Profile Pic</button>
                                             :
@@ -301,24 +323,24 @@ const Profile = () => {
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                     <Box>
                         <div className="rounded-circle border border-2  " style={{ maxHeight: "200px", maxWidth: "185px", overflow: "hidden" }} >
-                            <img src={users?.find((x) => x.UserId === loginUser)?.profileImg ?? profile} alt="" height={180} width={180} style={{ objectFit: "cover", maxHeight: "180px", maxWidth: "180px" }} />
+                            <img src={  users.profileImg ? `http://localhost:4000/image/uploads/profile/${users.profileImg}`  : profile} alt="" height={180} width={180} style={{ objectFit: "cover", maxHeight: "180px", maxWidth: "180px" }} />
                         </div>
-                        <Typography variant='h3'>{users?.find((x) => x.UserId === loginUser)?.username}</Typography>
-                        <Typography variant='h6'>{users?.find((x) => x.UserId === loginUser)?.bio}</Typography>
+                        <Typography variant='h3'>{users?.username}</Typography>
+                        <Typography variant='h6'>{users?.bio}</Typography>
 
                     </Box>
                     <Box>
                         <Box sx={{ display: "flex", gap: "40px", textAlign: "center" }}>
                             <Box sx={{ cursor: "pointer" }}>
-                                <Typography variant='h6'>{posts.filter((x) => x.UserId === loginUser)?.length}</Typography>
+                                <Typography variant='h6'>{posts.length}</Typography>
                                 <Typography variant='h6'>Post</Typography>
                             </Box>
                             <Box sx={{ cursor: "pointer" }} onClick={() => handleOpenFollow("followers")}>
-                                <Typography variant='h6'>{allFollow.filter((x) => x.reciverId == loginUser && x.status == "accepted").length}</Typography>
+                                <Typography variant='h6'>0</Typography>
                                 <Typography variant='h6'>Followers</Typography>
                             </Box>
                             <Box sx={{ cursor: "pointer" }} onClick={() => handleOpenFollow("following")}>
-                                <Typography variant='h6'>{allFollow.filter((x) => x.senderId == loginUser && x.status == "accepted").length}</Typography>
+                                <Typography variant='h6'>0</Typography>
                                 <Typography variant='h6'>Following</Typography>
                             </Box>
                         </Box>
@@ -339,20 +361,18 @@ const Profile = () => {
                             ?
                             <>
                                 {
-                                    posts.map((x) => {
-                                        if (x.UserId === loginUser) {
+                                    posts?.map((x) => {
                                             return <Box className='p-1 w-25 ' sx={{ cursor: "pointer" }} onDoubleClick={() => deletepost(x)}>
                                                 <div className='border border-2 position-relative posts' style={{ height: "315px" }}>
-                                                    <img src={x.postImg ?? profile} alt="" style={{ minHeight: "270px", maxHeight: "270px" }} width="100%" />
+                                                    <img src={`http://localhost:4000/image/uploads/posts/${x.postImg}` ?? profile} alt="" style={{ minHeight: "270px", maxHeight: "270px" }} width="100%" />
                                                     <div className='px-3 d-flex justify-content-between mt-2'>
-                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className={`border-0 bg-transparent text-danger  ${x.like.includes(loginUser) ? 'text-danger' : 'text-dark'}`} onClick={() => like(x, loginUser)}><Favorite /></button><span>{x.like.length}</span></Typography>
+                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className={`border-0 bg-transparent text-danger  ${x.like.includes(loginUser.UserId) ? 'text-danger' : 'text-dark'}`} onClick={() => like(x, loginUser)}><Favorite /></button><span>{x.like.length}</span></Typography>
                                                         <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className='border-0 bg-transparent ' onClick={() => handleOpenComment(x)}><ChatBubbleRoundedIcon /></button><span>{x.comments.length}</span></Typography>
                                                         <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><SendIcon sx={{ rotate: "320deg" }} /><span></span></Typography>
 
                                                     </div>
                                                 </div>
                                             </Box>
-                                        }
 
                                     })
 
@@ -382,7 +402,7 @@ const Profile = () => {
                                         <Typography variant='h5'>Your Post Img</Typography>
                                     </>
                                     :
-                                    <><img src={postData.postImg} alt="" height={"250px"} width={"250px"} /></>
+                                    <><img src={postImg} alt="" height={"250px"} width={"250px"} /></>
                             }
                         </Box>
                         <Typography variant='subtitle2' color="red" sx={{ mt: 1 }}>{error.postImg ?? ""}</Typography>

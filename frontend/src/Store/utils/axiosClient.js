@@ -34,9 +34,10 @@ axiosClient.interceptors.response.use(
     }
 );
 
-export const getApiResource = async (endpoint) => {
+export const getApiResource = async (endpoint,data) => {
     try {
-        const response = await axiosClient.get(endpoint);
+        console.log(data)
+        const response = await axiosClient.get(endpoint,data);
         return response.data;
     } catch (error) {
         console.error('GET Error:', error);
@@ -48,7 +49,6 @@ export const getApiResource = async (endpoint) => {
 export const postApiData = async (endpoint, data) => {
     try {
         const response = await axiosClient.post(endpoint, data);
-        console.log(response);
         return response.data;
     } catch (error) {
         console.error('POST Error:', error);

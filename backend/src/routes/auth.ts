@@ -8,9 +8,9 @@ import { isAuthenticated } from '../middleware/passport';
 const router: Router = express.Router();
 
 
-router.get('/getAllUsers',authMiddleware(),getAllUsers)
-router.get('/loginUser',authMiddleware(),isAuthenticated,loginUser)
-router.post('/login',passport.authenticate('local'),login)
+router.post('/getAllUsers',authMiddleware(),getAllUsers)
+router.post('/loginUser',authMiddleware(),isAuthenticated,loginUser)
+router.post('/login',passport.authenticate('local',{failureMessage:true}),login);
 router.post('/signup',signUp)
 router.post('/update' ,upload.single("profileImg"),authMiddleware(),isAuthenticated,update)
 export default router;

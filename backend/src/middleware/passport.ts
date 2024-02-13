@@ -14,8 +14,7 @@ export const initializePassport = (passport:any) => {
         async function (username : string, password : string, done) {
           try {
             const user = await users.findOne({ email: username });
-
-            if (!user) return done(null, false);
+            if (!user) return done(null, false ,{message :"User not found"});
 
             const passwordVerify: boolean = await bcrypt.compare(
               password ,

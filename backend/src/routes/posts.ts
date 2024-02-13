@@ -1,6 +1,6 @@
 import express, { Router} from 'express';
 import { upload } from '../utils/multer';
-import { addComment, addPosts, deleteComment, deletePosts, getUserFollowingPosts, likeDislike } from '../controllers/postcontrollers';
+import { addComment, addPosts, deleteComment, deletePosts, getUserFollowingPosts, getUserPost, likeDislike } from '../controllers/postcontrollers';
 
 const router: Router = express.Router();
 
@@ -10,6 +10,8 @@ router.delete('/deletePosts',deletePosts)
 router.post('/likeDislike',likeDislike)
 router.post('/addComment',addComment)
 router.delete('/deleteComment',deleteComment)
-router.get('/followingPosts',getUserFollowingPosts)
+router.post('/followingPosts',getUserFollowingPosts)
+router.post('/getUserPost',getUserPost)
+
 export default router;
 

@@ -18,7 +18,7 @@ const Signup = () => {
   const [error, seterror] = useState({ email: "", password: "", cpassword: "" })
   const dispatch = useDispatch();
   const navigate = useNavigate()
-  const data = useSelector((state) => state.users)
+  const data = useSelector((state) => state.users.data)
   const signUpData = async (e) => {
     if (e.target.type == "password" && e.target.name == "cpassword") {
 
@@ -34,7 +34,7 @@ const Signup = () => {
       }
     }
     else if (e.target.name == "email") {
-      const email = data?.find((x) => x.email == e.target.value)
+      const email = false
       if (email) {
         seterror({ email: "Email Already Exists" })
         signUpObj[e.target.name] = e.target.value

@@ -29,7 +29,7 @@ const Login = () => {
         seterror({ ...error })
     }
 
-    const login = (e) => {
+    const login = async   (e) => {
         for (let x in loginObj) {
             if (loginObj[x] == undefined || loginObj[x] == "") {
                 error[x] = "Required*"
@@ -42,36 +42,18 @@ const Login = () => {
         seterror({ ...error })
         e.preventDefault();
         if (Object.keys(error).length == 0) {
-            const login = data.find(x => x.email === loginObj.email)
-            if (login) {
-                if (login.password === loginObj.password) {
-                    Swal.fire({
-                        title: "Login",
-                        text: "Login Successfully.",
-                        icon: "success",
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                    loginObj['userId'] = login.UserId
-                    e.target.reset()
-                    dispatch(loginAccount(loginObj))
-                    setloginObj({})
-                    localStorage.setItem('isLogin', true)
+            const request =  await dispatch(loginAccount(loginObj))
+            if (request.meta.requestStatus === "fulfilled") {
+                localStorage.setItem('isLogin', true)
                     isLogin.setLogin(true)
                     isLogin.setuserName(login.username)
-                    localStorage.setItem('loginId', JSON.stringify(login.UserId))
-
-                    navigate("/")
-                }
-                else {
-                    toast.error("Password Incorrect")
-                }
-            }
-            else {
-                toast.error("User Not Found")
+                    navigate('/home')
+            
             }
         }
+
     }
+    
 
     return (
         <div className="loginPage">

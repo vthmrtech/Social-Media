@@ -78,6 +78,7 @@ export const addPosts = async (req: Request, res: Response) => {
       const newPost: post | any = await posts.create({
         ...req.body,
         postId: uuid(),
+        time : new Date()
       });
       return res.status(200).json({
         success: true,
@@ -134,6 +135,9 @@ export const likeDislike = async (req: Request, res: Response) => {
           },
           { new: true }
         );
+        const getPosts : post[] | null = await posts.find({
+          UserId:req.body.UserId
+        })
         return res.status(200).json({
           success: true,
           data: dislike,

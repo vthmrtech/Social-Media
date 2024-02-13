@@ -9,10 +9,10 @@ router.post('/accepted',accepted)
 router.post('/blockUser',blocked)
 router.post('/unblock',unBlock)
 router.delete('/deleteRequest',deleteRequest)
-router.get('/allFollowers',followers)
+router.post('/allFollowers',followers)
 router.post('/removeFollower',removeFollower)
-router.get('/allFollowings',followings)
+router.post('/allFollowings',followings)
 router.post('/unFollow',unFollow)
-router.get('/blocklist',blocklist)
+router.post('/blocklist',blocklist)
 
 export default router;

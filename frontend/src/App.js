@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Toaster } from 'react-hot-toast';
 import Profile from './Components/Profile';
 import { createContext, useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import Home from './Components/Home';
 import Requests from './Components/Requests';
 import Login from './Components/Login';
@@ -16,21 +16,22 @@ export let Context = createContext()
 function App() {
   const [login, setLogin] = useState(JSON.parse(localStorage.getItem("isLogin")))
   const loginUser = useSelector((state) => state.users.data)
-  console.log(loginUser)
   const [userName, setuserName] = useState(loginUser?.username)
 
+  const navigate = useNavigate()
   useEffect(() =>{
     if(!login || (login!==true && login !== false)){
+      navigate('/login')  
       localStorage.setItem('isLogin', false)
-      
     }
+    setuserName(loginUser.username)
   },[])
   
   return (
     <>
       <Toaster />
       <Context.Provider value={{ login, setLogin, setuserName , userName}}>
-        <BrowserRouter>
+        
           <Routes>
             {
               login === false
@@ -58,7 +59,6 @@ function App() {
             <Route path='*' element={<Navigate to="/" />} />
 
           </Routes>
-        </BrowserRouter>
 
       </Context.Provider>
     </>

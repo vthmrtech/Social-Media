@@ -5,7 +5,7 @@ import SendIcon from '@mui/icons-material/Send';
 import { HOC } from './Hoc'
 import { useDispatch, useSelector } from 'react-redux'
 import { Favorite } from '@mui/icons-material';
-import { addComment, deleteComments, liked } from '../Store/Slice/PostsSlice';
+// import { addComment, deleteComments, liked } from '../Store/Slice/PostsSlice';
 import profile from "../Assets/img/profile.jpg"
 import OnBoarding from './OnBoarding';
 import { Context } from '../App';
@@ -20,9 +20,9 @@ const Home = () => {
     const [commentsObj, setcommentsObj] = useState({})
     const [likeObj, setlikeObj] = useState({})
     const [openComment, setopenComment] = useState([false, ""]);
-    const loginId = JSON.parse(localStorage.getItem("loginId"))
+    const loginId = "id"
     const dispatch = useDispatch()
-    const users = useSelector((state) => state.users)
+    const users = useSelector((state) => state.users.data)
     const allFollowings = useSelector((state) => state.following).filter((x) => x.senderId == loginId && x.status == "accepted")
     const posts = useSelector((state) => state.posts).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
     const handleOpenComment = (x) => setopenComment([true, x]);
@@ -43,7 +43,7 @@ const Home = () => {
         likeObj['postId'] = post.postId
         likeObj['loginId'] = loginId
         setlikeObj({ ...likeObj })
-        dispatch(liked(likeObj))
+        // dispatch(liked(likeObj))
     }
 
     const comments = (e) => {
@@ -57,7 +57,7 @@ const Home = () => {
         commentsObj['postId'] = openComment[1].postId
         commentsObj['UserId'] = loginId
         setcommentsObj({ ...commentsObj })
-        dispatch(addComment(commentsObj))
+        // dispatch(addComment(commentsObj))
         // handleCloseComment()
         setcommentsObj({})
     }
@@ -66,12 +66,13 @@ const Home = () => {
         commentsObj['postId'] = openComment[1].postId
         commentsObj['commentId'] = x.commentId
         setcommentsObj({ ...commentsObj })
-        dispatch(deleteComments(commentsObj))
+        // dispatch(deleteComments(commentsObj))
     }
+    const loginUser = useSelector((state) => state.users.data)
     return (
         <>
             {
-                isLogin.userName == undefined
+                loginUser.username == undefined
                     ?
                     <Box sx={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0, zIndex: 500 }}>
                         <OnBoarding />

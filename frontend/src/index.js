@@ -1,21 +1,24 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { Provider } from 'react-redux';
-import store from './Store/CombineReducer';
-import TimeAgo from 'javascript-time-ago'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { Provider } from "react-redux";
+import store from "./Store/CombineReducer";
+import TimeAgo from "javascript-time-ago";
 
-import en from 'javascript-time-ago/locale/en.json'
-import ru from 'javascript-time-ago/locale/ru.json'
+import en from "javascript-time-ago/locale/en.json";
+import ru from "javascript-time-ago/locale/ru.json";
+import { BrowserRouter } from "react-router-dom";
 
-TimeAgo.addDefaultLocale(en)
-TimeAgo.addLocale(ru)
-const root = ReactDOM.createRoot(document.getElementById('root'));
+TimeAgo.addDefaultLocale(en);
+TimeAgo.addLocale(ru);
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <Provider store={store}>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </Provider>
 );
 
