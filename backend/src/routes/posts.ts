@@ -6,12 +6,12 @@ const router: Router = express.Router();
 
 
 router.post('/addPosts',upload.single("postImg"),addPosts)
-router.delete('/deletePosts',deletePosts)
+router.delete('/deletePosts/:id',deletePosts)
 router.post('/likeDislike',likeDislike)
 router.post('/addComment',addComment)
-router.delete('/deleteComment',deleteComment)
-router.post('/followingPosts',getUserFollowingPosts)
-router.post('/getUserPost',getUserPost)
+router.post('/deleteComment',deleteComment)
+router.get('/followingPosts',getUserFollowingPosts)
+router.get('/getUserPost',getUserPost)
 
 export default router;
 

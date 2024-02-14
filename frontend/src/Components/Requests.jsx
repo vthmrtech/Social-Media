@@ -3,7 +3,6 @@ import { Box, Container } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import { HOC } from './Hoc'
 import { useDispatch, useSelector } from 'react-redux'
-import { addRequests, addfollowing, blockList, declineRequest } from '../Store/Slice/FollowSlice'
 import ReactTimeAgo from 'react-time-ago'
 import profile from "../Assets/img/profile.jpg"
 import { NavLink } from 'react-router-dom'
@@ -11,47 +10,45 @@ import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { getAllUsers } from '../Store/actions/userActions'
+import { acceptRequest, blockList, declineRequest, getRequests, getfollowers, getfollowing, pendingRequests, removeFollow, sendRequests, unFollow } from '../Store/actions/requestsAction'
 
 
 const RequestsPage = () => {
-    const allUsers = useSelector((state) => state.users)
-    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("loginId")))
-    const allRequests = useSelector((state) => state.following).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
+    const allUsers = useSelector((state) => state.users.allUsers)
+
+    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("user")))
+    const allRequests = useSelector((state) => state.requests.requests).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
     const [followingData, setfollowingData] = useState({})
     const dispatch = useDispatch()
     const [otherUsers, setotherUsers] = useState([])
+    const pendingRequsts = useSelector((state) => state.requests.sentRequest)
+    const followers = useSelector((state) => state.requests.followers)
+    const following = useSelector((state) => state.requests.following)
+    const blockedUsers =  useSelector((state) => state.requests.blockUser)
+    useEffect(() => {
+        getInfo()
+    }, [])
 
-    const followers = () => {
-        return allRequests?.filter((x) => x.reciverId == loginUser && x.status == "requested").map((x) => x.senderId).flatMap((x) => allUsers.filter((a) => a.UserId == x))
+    const getInfo = () => {
+        dispatch(getAllUsers())
+        dispatch(getRequests())
+        dispatch(pendingRequests())
+        dispatch(getfollowers())
+        dispatch(getfollowing())
+        dispatch(blockList())
+
+    }
+    
+
+    const allpendingRequests = () => {
+        return allRequests?.map((x) => x.senderId).flatMap((x) => allUsers.filter((a) => a.UserId == x))
     }
 
     const getUsers = (e) => {
         if (e.target.value != "") {
             const array = allUsers.filter((x) => x.username.toLowerCase().includes(e.target.value.toLowerCase()))
-            if (allRequests.length != 0) {
-                const unblockedUsers = array.filter((x) => {
-                    if (x.UserId != loginUser) {
-                        const user = allRequests.find((e) => e.reciverId == x.UserId)
-                        if (user && user.status != "blocked") {
-                            return user
-                        }
-                        else {
-
-                            return x
-                        }
-                    }
-                    else {
-                        return x
-                    }
-                })
-                setotherUsers(unblockedUsers)
-
-            }
-            else {
-
-                setotherUsers(array)
-            }
-            // const unblockedUsers = array.filter((x) => unblocked.find((e) => e.reciverId == x.UserId))
+            setotherUsers([...array])
         }
         else {
             setotherUsers([])
@@ -60,39 +57,51 @@ const RequestsPage = () => {
 
 
 
-    const follow = (x) => {
-        followingData['time'] = new Date();
-        followingData['senderId'] = x.UserId
-        followingData['reciverId'] = loginUser
+    const follow = async (x) => {
+        followingData['receivedFrom'] = x.UserId
         setfollowingData({ ...followingData })
-        dispatch(addfollowing(followingData))
+        const response = await dispatch(acceptRequest(followingData))
+        if(response.meta.requestStatus === "fulfilled"){
+            getInfo()
+        }
     }
 
     const blockUser = (x) => {
-        followingData['time'] = new Date();
         followingData['senderId'] = x.UserId
-        followingData['reciverId'] = loginUser
         setfollowingData({ ...followingData })
-        dispatch(blockList(followingData))
+        // dispatch(blockList(followingData))
     }
 
-    const request = (x) => {
-        followingData['senderId'] = loginUser
-        followingData['reciverId'] = x.target.value
-        followingData['time'] = new Date();
+    const request = async (x) => {
+        followingData['sendTo'] = x.UserId
         setfollowingData({ ...followingData })
-        dispatch(addRequests(followingData))
+        const response  = await dispatch(sendRequests(followingData))
+            if(response.meta.requestStatus === "fulfilled"){
+                getInfo()
+            }
+        
 
-        x.target.innerHTML = "Requested"
-        x.target.classList.remove('btn-primary')
-        x.target.classList.add('btn-secondary')
 
     }
-    const deleteRequest = (x) => {
-        followingData['senderId'] = x.UserId
-        followingData['reciverId'] = loginUser
-        setfollowingData({ ...followingData })
-        dispatch(declineRequest(followingData))
+    const deleteRequest = async (x) => {
+        const response  = await dispatch(declineRequest(x.UserId))
+        if(response.meta.requestStatus === "fulfilled"){
+            getInfo()
+        }
+
+    }
+    const removeFollower = async (x) => {
+        const response  = await dispatch(removeFollow(x.UserId))
+        if(response.meta.requestStatus === "fulfilled"){
+            getInfo()
+        }
+
+    }
+    const unfollowUser = async (x) => {
+        const response  = await dispatch(unFollow(x.UserId))
+        if(response.meta.requestStatus === "fulfilled"){
+            getInfo()
+        }
 
     }
 
@@ -110,6 +119,25 @@ const RequestsPage = () => {
     };
     const ITEM_HEIGHT = 48;
 
+    const btnShow = (x) => {
+        if(pendingRequsts.find(a => a.receiverId == x.UserId && a.senderId == loginUser.UserId))
+        {
+            return <Button variant='outlined' color='error' onClick={() => deleteRequest(x)}>Cancel Request</Button>
+        }
+        else if(followers.find((e) => e.senderId == x.UserId)){ 
+            return  <Button variant='outlined' color='error' onClick={() => removeFollower(x)}>Remove Follower</Button>
+            
+        }
+        else if(following.find((e) => e.receiverId == x.UserId)){
+            return <Button variant='outlined' color='error' onClick={() => unfollowUser(x)}>UnFollow</Button>
+        }
+        else{
+            return <Button variant='contained' color='primary' onClick={() => request(x)}>Follow</Button>
+        }
+    }
+
+    
+
     return (
         <>
             <Container>
@@ -117,16 +145,16 @@ const RequestsPage = () => {
 
                 <Typography variant='h4' className='fw-bold'>Requests</Typography>
                 {
-                    followers().length === 0
+                    allpendingRequests().length === 0
                         ?
                         <Typography variant='h6' className='fw-bold my-3 text-center'>No Requests</Typography>
                         :
                         <>
                             {
-                                followers().map((x) => {
+                                allpendingRequests().map((x) => {
                                     return <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", my: 2 }}>
                                         <div className='d-flex align-items-center gap-4'>
-                                            <img src={x.profileImg ?? profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
+                                            <img src={x.profileImg ?  `http://localhost:4000/image/uploads/profile/${x.profileImg}` :  profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
                                             <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                         </div>
 
@@ -190,13 +218,14 @@ const RequestsPage = () => {
                         <>
                             {
                                 otherUsers.map((x) => {
+                                    // return <Typography variant='h6' className='fw-bold'>Found</Typography>
                                     return <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", my: 2 }}>
                                         <div className='d-flex align-items-center gap-4'>
-                                            <img src={x.profileImg ?? profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
+                                            <img src={x.profileImg ? `http://localhost:4000/image/uploads/profile/${x.profileImg}`  : profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
                                             <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                         </div>
-                                        {
-                                            allUsers.find((a) => a.UserId == loginUser).UserId == x.UserId
+                                        { 
+                                            x.UserId == loginUser.UserId                                         
                                                 ?
                                                 <>
                                                     <NavLink to='/profile'><Button variant='outlined' color='success' className='me-2'>View Profile</Button></NavLink>
@@ -206,23 +235,7 @@ const RequestsPage = () => {
                                                 <>
 
                                                     {
-                                                        allRequests.find((e) => e.reciverId == x.UserId && e.senderId == loginUser)
-                                                            ?
-                                                            <>
-                                                                {
-                                                                    allRequests.find((e) => e.reciverId == x.UserId).status == "requested"
-                                                                        ?
-                                                                        <Button variant='outlined' color='error' onClick={() => deleteRequest(x)}>Cancel Request</Button>
-                                                                        :
-                                                                        <Button variant='outlined' color='error' onClick={() => deleteRequest(x)}>Unfollow</Button>
-
-                                                                }
-
-                                                            </>
-                                                            :
-                                                            <>
-                                                                <button onClick={request} className='btn btn-primary' value={x.UserId}>Follow</button>
-                                                            </>
+                                                        btnShow(x)
                                                     }
 
                                                 </>

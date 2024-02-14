@@ -5,7 +5,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Context } from "../App";
-import { updateAccount } from "../Store/actions/useractions";
+import { updateAccount } from "../Store/actions/userActions";
 import toast from "react-hot-toast";
 const OnBoarding = () => {
   let isLogin = useContext(Context);
@@ -71,8 +71,7 @@ const OnBoarding = () => {
       if (response.meta.requestStatus === "fulfilled") {
         toast.success("Profile Updated Successfully");
         isLogin.setuserName(formData.username);
-        console.log("isLogin.username")
-        navigate("/profile");
+        navigate("/profile")
       }
     }
   };

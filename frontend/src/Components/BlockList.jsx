@@ -1,6 +1,5 @@
 import { Box, Button, Container, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import { declineRequest } from '../Store/Slice/FollowSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import profile from "../Assets/img/profile.jpg"
 import { HOC } from './Hoc'
@@ -23,7 +22,7 @@ const BlockList = () => {
         blockObj['senderId'] = x.UserId
         blockObj['reciverId'] = loginUser
         setblockObj({ ...blockObj })
-        dispatch(declineRequest(blockObj))
+        // dispatch(declineRequest(blockObj))
 
     }
 

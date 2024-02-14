@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import fs from "fs";
 import jwt from "jsonwebtoken";
 import { v4 as uuid } from "uuid";
-import { SECRET_KEY } from "../middleware/middleware";
+import { SECRET_KEY, userDetails } from "../middleware/middleware";
 
 export type User = {
   email?: string;
@@ -72,7 +72,7 @@ export const signUp = async (req: Request, res: Response) => {
 };
 
 export const loginUser  = async (req :  Request, res :Response) => {
-  const user = await users.findOne({UserId : req.body.UserId});
+  const user : User | any = await users.findOne({UserId : userDetails.UserId});
   return res.status(200).json({
     success: true,
     data: user,
@@ -110,7 +110,7 @@ export const login = async (req: Request, res: Response) => {
 
 export const update = async (req: Request, res: Response) => {
   try {
-    const loginData :User | any = await users.findOne({email: req.user})
+    const loginData :User | any = await users.findOne({email: userDetails.email});
 
       if (
         req.body.profileImg &&

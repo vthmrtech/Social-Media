@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import AdbIcon from "@mui/icons-material/Adb";
 import BlockIcon from "@mui/icons-material/Block";
 import { NavLink } from "react-router-dom";
@@ -19,18 +19,30 @@ import { AccountCircle, Logout } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import { Context } from "../App";
 import { useDispatch, useSelector } from "react-redux";
-import { logoutAccount } from "../Store/actions/useractions";
+import { logoutAccount } from "../Store/actions/userActions";
+import { getRequests } from "../Store/actions/requestsAction";
 
 export const HOC = (Component) => {
   const pages = ["home", "requests", "profile"];
   const NewComp = () => {
-    const allRequests = useSelector((state) => state.following)
-      .slice()
-      .sort((date1, date2) => new Date(date2.time) - new Date(date1.time));
+    const userInfo = useSelector((state) => state.users.data)
+
+    const allRequests = useSelector((state) => state.requests.requests)
     let isLogin = useContext(Context);
+    const [loginUser, setloginUser] = useState(userInfo)
     const [anchorElNav, setAnchorElNav] = useState(null);
     const [anchorElUser, setAnchorElUser] = useState(null);
     const dispatch = useDispatch();
+
+    useEffect(() =>{
+      dispatch(getRequests())
+      setloginUser(JSON.parse(localStorage.getItem("user")))
+      
+    },[])
+    useEffect(() =>{
+      setloginUser(userInfo)
+      
+    },[userInfo])
 
     const handleOpenNavMenu = (event) => {
       setAnchorElNav(event.currentTarget);
@@ -48,10 +60,7 @@ export const HOC = (Component) => {
       setAnchorElUser(null);
     };
 
-    const [loginUser, setloginUser] = useState(
-      "id"
-    );
-    const users = useSelector((state) => state.users.data);
+
 
     const logout = () => {
       Swal.fire({
@@ -135,10 +144,7 @@ export const HOC = (Component) => {
                       >
                         {page}
                         {page == "requests" &&
-                        allRequests?.filter(
-                          (x) =>
-                            x.reciverId == loginUser && x.status == "requested"
-                        ).length > 0 ? (
+                        allRequests.length > 0 ? (
                           <span
                             className="bg-white text-dark  fs-6 d-flex align-items-center justify-content-center position-absolute rounded-circle fw-bold"
                             style={{
@@ -149,11 +155,7 @@ export const HOC = (Component) => {
                             }}
                           >
                             {
-                              allRequests?.filter(
-                                (x) =>
-                                  x.reciverId == loginUser &&
-                                  x.status == "requested"
-                              ).length
+                              allRequests.length  
                             }
                           </span>
                         ) : (
@@ -169,9 +171,9 @@ export const HOC = (Component) => {
                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                       <Avatar
                         alt="Remy Sharp"
-                        // src={
-                        //   users?.find((x) => x.UserId === loginUser)?.profileImg
-                        // }
+                        src={
+                          `http://localhost:4000/image/uploads/profile/${loginUser.profileImg}`
+                        }
                         sx={{ height: "70px", width: "70px" }}
                       />
                     </IconButton>

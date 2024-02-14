@@ -8,7 +8,7 @@ import { isAuthenticated } from '../middleware/passport';
 const router: Router = express.Router();
 
 
-router.post('/getAllUsers',authMiddleware(),getAllUsers)
+router.get('/getAllUsers',authMiddleware(),isAuthenticated,getAllUsers)
 router.post('/loginUser',authMiddleware(),isAuthenticated,loginUser)
 router.post('/login',passport.authenticate('local',{failureMessage:true}),login);
 router.post('/signup',signUp)

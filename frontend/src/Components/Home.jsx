@@ -12,6 +12,7 @@ import { Context } from '../App';
 import { Form } from 'react-bootstrap';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { getFollowingPosts } from '../Store/actions/postAction';
 
 
 
@@ -24,7 +25,7 @@ const Home = () => {
     const dispatch = useDispatch()
     const users = useSelector((state) => state.users.data)
     const allFollowings = useSelector((state) => state.following).filter((x) => x.senderId == loginId && x.status == "accepted")
-    const posts = useSelector((state) => state.posts).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
+    const posts = useSelector((state) => state.posts.data).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
     const handleOpenComment = (x) => setopenComment([true, x]);
     const handleCloseComment = () => setopenComment([false, ""]);
     const style = {
@@ -68,6 +69,11 @@ const Home = () => {
         setcommentsObj({ ...commentsObj })
         // dispatch(deleteComments(commentsObj))
     }
+
+    useEffect(() => {
+      dispatch(getFollowingPosts())
+    }, [])
+    
     const loginUser = useSelector((state) => state.users.data)
     return (
         <>
@@ -85,7 +91,6 @@ const Home = () => {
                             <Container sx={{ display: "flex", flexWrap: "wrap", p: "0", alignContent: "flex-start" }}>
                                 {
                                     posts?.map((x) => {
-                                        if (allFollowings.find((a) => a.reciverId == x.UserId) || x.UserId === loginId) {
 
                                             return <div className='p-1 w-25 ' >
                                                 <div className='border border-2' style={{ height: "351px" }}>
@@ -102,7 +107,6 @@ const Home = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        }
 
                                     })
 

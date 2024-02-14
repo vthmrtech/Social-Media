@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import posts from "../models/postSchema";
-import users from "../models/usersSchema";
-import { User } from "./authController";
 import { v4 as uuid } from "uuid";
 import follow from "../models/followSchema";
+import { userDetails } from "../middleware/middleware";
+import fs from "fs";
+import users from "../models/usersSchema";
 
 type comments = {
   UserId?: string;
@@ -24,7 +25,7 @@ type post = {
 export const getUserPost = async (req: Request, res: Response) => {
   try {
     const getPosts : post[] | null = await posts.find({
-      UserId:req.body.UserId
+      UserId: userDetails.UserId
     })
     return res.status(200).json({
       success: true,
@@ -38,11 +39,10 @@ export const getUserPost = async (req: Request, res: Response) => {
 
 export const getUserFollowingPosts = async (req: Request, res: Response) => {
   try {
-
     const followingPosts : any = await follow.aggregate([
       {
         $match: {
-          senderId: req.body.UserId,
+          senderId: userDetails.UserId,
           status: "accepted",
         },
       },
@@ -77,6 +77,7 @@ export const addPosts = async (req: Request, res: Response) => {
     
       const newPost: post | any = await posts.create({
         ...req.body,
+         UserId: userDetails.UserId,
         postId: uuid(),
         time : new Date()
       });
@@ -94,17 +95,18 @@ export const addPosts = async (req: Request, res: Response) => {
 export const deletePosts = async (req: Request, res: Response) => {
   try {
     const deletePost: post | null = await posts.findOne({
-      postId: req.body.postId,
-      UserId: req.body.UserId,
+      postId: req.params.id,
+      UserId: userDetails.UserId,
     });
     if (deletePost) {
-      const deletePost: any = await posts.deleteOne({
-        postId: req.body.postId,
-        UserId: req.body.UserId,
+      const deletePosts: any = await posts.deleteOne({
+        postId: req.params.id,
+        UserId: userDetails.UserId,
       });
+      fs.unlinkSync(`./src/public/uploads/posts/${deletePost.postImg}`);
       return res.status(200).json({
         success: true,
-        data: deletePost,
+        data: deletePosts,
         message: `Post Deleted`,
       });
     } else {
@@ -125,18 +127,18 @@ export const likeDislike = async (req: Request, res: Response) => {
       postId: req.body.postId,
     });
     if (post) {
-      if (post?.like?.includes(req.body.UserId)) {
+      if (post?.like?.includes(userDetails.UserId)) {
         const dislike: post | null = await posts.findOneAndUpdate(
           { postId: req.body.postId },
           {
             $pull: {
-              like: req.body.UserId,
+              like: userDetails.UserId,
             },
           },
           { new: true }
         );
         const getPosts : post[] | null = await posts.find({
-          UserId:req.body.UserId
+          UserId:userDetails.UserId
         })
         return res.status(200).json({
           success: true,
@@ -148,7 +150,7 @@ export const likeDislike = async (req: Request, res: Response) => {
           { postId: req.body.postId },
           {
             $push: {
-              like: req.body.UserId,
+              like: userDetails.UserId,
             },
           },
           { new: true }
@@ -184,7 +186,8 @@ export const addComment = async (req: Request, res: Response) => {
             comments: {
               comment: req.body.comment,
               commentId: uuid(),
-              UserId: req.body.UserId,
+              UserId: userDetails.UserId,
+              username : await users.findOne({UserId:userDetails.UserId}).then((result)=> result?.username)
             },
           },
         },
@@ -213,7 +216,7 @@ export const deleteComment = async (req: Request, res: Response) => {
         postId: req.body.postId,
         comments: {
           $elemMatch: {
-            UserId: req.body.UserId,
+            UserId: userDetails.UserId,
             commentId: req.body.commentId,
           },
         },
@@ -221,7 +224,7 @@ export const deleteComment = async (req: Request, res: Response) => {
       console.log("posts", post);
       const userPost = await posts.findOne({
         postId: req.body.postId,
-        UserId: req.body.UserId,
+        UserId: userDetails.UserId,
       });
       if (post || userPost) {
         const comment = await posts.findOneAndUpdate(

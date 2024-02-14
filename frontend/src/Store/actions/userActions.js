@@ -1,6 +1,24 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { postApiData } from "../utils/axiosClient";
+import { getApiResource, postApiData } from "../utils/axiosClient";
 import toast from "react-hot-toast";
+
+export const getAllUsers = createAsyncThunk(
+  "auth/getAllUsers",
+  async (arg, thunkAPI) => {
+    try {
+      const response = await getApiResource("/auth/getAllUsers");
+      if (response.success) {
+        return response.data;
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Can't get Users");
+      console.error("Can't get Users", error);
+      throw error;
+    }
+  }
+)
 
 export const signup = createAsyncThunk("auth/signup", async (arg, thinkAPI) => {
   try {
@@ -42,7 +60,6 @@ export const updateAccount = createAsyncThunk(
   "auth/update",
   async (arg, thinkAPI) => {
     try {
-      console.log('eee')
       const response = await postApiData("/auth/update", arg);
       if(response.success){
         return response.data;

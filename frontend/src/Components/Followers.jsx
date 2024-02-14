@@ -3,40 +3,55 @@ import { Box, Container } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import profile from "../Assets/img/profile.jpg"
-import { addRequests, blockList, declineRequest, } from '../Store/Slice/FollowSlice'
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { getfollowers, sendRequests, pendingRequests, removeFollow } from '../Store/actions/requestsAction'
+import { getAllUsers } from '../Store/actions/userActions'
 
 const Followers = () => {
-    const users = useSelector((state) => state.users)
-    const allFollow = useSelector((state) => state.following).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
+    const users = useSelector((state) => state.users.allUsers)
+    const allFollow = useSelector((state) => state.requests.followers).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
     const [followerObj, setfollowerObj] = useState({})
     const dispatch = useDispatch()
-    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("loginId")))
+    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("user")))
+    const sendRequest = useSelector((state) => state.requests.sentRequest)
+
+    const allfollowings = useSelector((state) => state.requests.following)
 
 
 
     const followers = () => {
-        return allFollow?.filter((x) => x.reciverId == loginUser && x.status == "accepted").map((y) => y.senderId).flatMap((z) => users.filter((a) => a.UserId == z))
+        return allFollow?.map((y) => y.senderId).flatMap((z) => users.filter((a) => a.UserId == z))
     }
     
+    const getInfo = () => {
+        dispatch(getfollowers())
+        dispatch(getAllUsers())
+        dispatch(pendingRequests())
 
+    }
+
+    useEffect(() => {
+        getInfo()
+    }, [])
+    
     const unfollow = (x) => {
         followerObj['reciverId'] = x.UserId
         followerObj['senderId'] = loginUser
         setfollowerObj({ ...followerObj })
-        dispatch(declineRequest(followerObj))
+        // dispatch(declineRequest(followerObj))
         
     }
     
-    const request = (x) => {
-        followerObj['senderId'] = loginUser
-        followerObj['reciverId'] = x.target.value
-        followerObj['time'] = new Date();
+    const request = async (x) => {
+        followerObj['sendTo'] = x.target.value
         setfollowerObj({ ...followerObj })
-        dispatch(addRequests(followerObj))
+        const response  = await dispatch(sendRequests(followerObj))
+        if(response.meta.requestStatus  === "fulfilled"){
+            getInfo()
+        }
 
 
     }
@@ -45,7 +60,7 @@ const Followers = () => {
         followerObj['senderId'] = loginUser
         followerObj['reciverId'] = 
         setfollowerObj({ ...followerObj })
-        dispatch(declineRequest(followerObj))
+        // dispatch(declineRequest(followerObj))
         
     }
 
@@ -54,7 +69,7 @@ const Followers = () => {
         followerObj['senderId'] = x.UserId
         followerObj['reciverId'] = loginUser
         setfollowerObj({ ...followerObj })
-        dispatch(blockList(followerObj))
+        // dispatch(blockList(followerObj))
     }
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
@@ -66,11 +81,13 @@ const Followers = () => {
     };
     const ITEM_HEIGHT = 48;
     
-    const removeFollower = (x) =>{
-        followerObj['senderId'] = x.UserId
-        followerObj['reciverId'] = loginUser
-        dispatch(declineRequest(followerObj))
-    }
+        const removeFollower = async (x) => {
+            const response  = await dispatch(removeFollow(x.UserId))
+            if(response.meta.requestStatus === "fulfilled"){
+                getInfo()
+            }
+    
+        }
     
 
     return (
@@ -79,26 +96,27 @@ const Followers = () => {
             {
                 followers()?.length === 0
                     ?
-                    <Typography variant='h6' className='fw-bold my-3 text-center'>No following</Typography>
+                    <Typography variant='h6' className='fw-bold my-3 text-center'>No followers</Typography>
                     :
                     <>
                         {
                             followers()?.map((x) => {
+                                
                                 return <>
                                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", my: 2 }}>
                                         <div className='d-flex align-items-center gap-4'>
-                                            <img src={x.profileImg ?? profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
+                                            <img src={x.profileImg ? `http://localhost:4000/image/uploads/profile/${x.profileImg}`  : profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
                                             <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                         </div>
                                         <div>
                                             {
-                                                allFollow.find(a => a.reciverId == x.UserId && a.senderId == loginUser && a.status == "accepted")
+                                                allFollow.find(a => a.reciverId == x.UserId && a.senderId == loginUser.UserId && a.status == "accepted")
                                                     ?
                                                     <Button variant='contained' color='error' onClick={() => unfollow(x)}>UnFollow</Button>
                                                     :
                                                     <>
                                                         {
-                                                            allFollow.find(a => a.reciverId == x.UserId && a.senderId == loginUser && a.status == "requested")
+                                                            sendRequest.find(a => a.receiverId == x.UserId && a.senderId == loginUser.UserId && a.status == "requested")
                                                                 ?
                                                                 <Button variant='outlined' color='error' onClick={() => deleteRequest(x)}>Cancel Request</Button>
 
@@ -141,7 +159,7 @@ const Followers = () => {
                                                 >
 
                                                     <MenuItem    onClick={handleClose}>
-                                                        <Button variant='outlined' color='error' onClick={() => blockUser(x)}>Block User</Button>
+                                                        <Button  color='error' onClick={() => blockUser(x)}>Block User</Button>
                                                     </MenuItem>
 
                                                 </Menu>

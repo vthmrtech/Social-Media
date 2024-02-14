@@ -8,7 +8,7 @@ import { isAuthenticated } from '../middleware/passport';
 const router: Router = express.Router();
 
 router.use('/auth', auth)
-router.use('/posts', posts)
+router.use('/posts',authMiddleware(),isAuthenticated, posts)
 router.use('/requests',authMiddleware(),isAuthenticated, requests)
 
 export default router;

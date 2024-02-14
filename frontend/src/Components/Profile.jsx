@@ -12,8 +12,9 @@ import { Favorite } from '@mui/icons-material';
 import profile from "../Assets/img/profile.jpg"
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { updateAccount } from '../Store/actions/useractions';
-import { addPosts, getUserPosts, likeDislike } from '../Store/actions/postAction';
+import { updateAccount } from '../Store/actions/userActions';
+import { addComment, addPosts, deleteComment, deletePosts, getUserPosts, likeDislike } from '../Store/actions/postAction';
+import { getfollowers, getfollowing } from '../Store/actions/requestsAction';
 
 
 
@@ -32,6 +33,7 @@ const Profile = () => {
     const [commentsObj, setcommentsObj] = useState({})
     const [displayImg, setdisplayImg] = useState("")
     const [postImg, setpostImg] = useState("")
+    const followingFollowers = useSelector((state) => state.requests)
 
     const posts = useSelector((state) => state.posts.data)
     const getuserProfile = () => {
@@ -124,7 +126,6 @@ const Profile = () => {
             for (let key in editObj) {
               formData.append(key, editObj[key]);
             }
-            console.log("updateProfile",editObj)
 
             const response  = await dispatch(updateAccount(formData))
             if(response.meta.requestStatus === "fulfilled"){
@@ -187,7 +188,6 @@ const Profile = () => {
     const addposts = async () => {
         if (Object.keys(error).length == 0) {
 
-            postData['UserId'] = loginUser.UserId
             postData['postId'] = uuid4();
             postData['time'] = new Date()
             setpostData({ ...postData })
@@ -197,10 +197,10 @@ const Profile = () => {
             }
             const response = await dispatch(addPosts(formData))
             if(response.meta.requestStatus == "fulfilled"){
-                setpostImg("")
-                setpostData({})
+                // setpostImg("")
+                // setpostData({})
                 handleClose();
-                dispatch(getUserPosts({ userId: loginUser.UserId}))
+                dispatch(getUserPosts())
 
             }
         }
@@ -209,7 +209,9 @@ const Profile = () => {
 
     useEffect(() => {
         getuserProfile()
-        dispatch(getUserPosts({ UserId :loginUser.UserId}))
+        dispatch(getUserPosts())
+        dispatch(getfollowers())
+        dispatch(getfollowing())
     }, [])
 
 
@@ -217,12 +219,11 @@ const Profile = () => {
     const [likeObj, setlikeObj] = useState({})
 
     const like = async (post) => {
-        likeObj['UserId'] = loginUser.UserId
         likeObj['postId'] = post.postId
         setlikeObj({ ...likeObj })
         const response  = await dispatch(likeDislike(likeObj))
         if(response.meta.requestStatus === "fulfilled"){
-            dispatch(getUserPosts({ UserId :loginUser.UserId}))
+            dispatch(getUserPosts())
         }
     }
 
@@ -234,9 +235,11 @@ const Profile = () => {
             reader.onerror = reject;
         });
 
-    const deletepost = (x) => {
-
-        // dispatch(deletePost(x.postId))
+    const deletepost = async (x) => {
+        const response = await dispatch(deletePosts(x.postId))
+        if(response.meta.requestStatus === "fulfilled"){
+            dispatch(getUserPosts())
+        }
     }
 
 
@@ -247,21 +250,27 @@ const Profile = () => {
     }
 
 
-    const addComents = (e) => {
+    const addComents = async (e) => {
         e.preventDefault();
         commentsObj['postId'] = openComment[1].postId
-        commentsObj['UserId'] = loginUser
         setcommentsObj({ ...commentsObj })
-        // dispatch(addComment(commentsObj))
-        // handleCloseComment()
+        const response = await dispatch(addComment(commentsObj))
+        if(response.meta.requestStatus === "fulfilled"){
+            handleCloseComment()
+            dispatch(getUserPosts())
+        }
         setcommentsObj({})
     }
 
-    const deleteComment = (x) => {
+    const deleteComments = async (x) => {
         commentsObj['postId'] = openComment[1].postId
         commentsObj['commentId'] = x.commentId
         setcommentsObj({ ...commentsObj })
-        // dispatch(deleteComments(commentsObj))
+        const response  = await dispatch(deleteComment(commentsObj))
+        if(response.meta.requestStatus === "fulfilled"){
+            handleCloseComment()
+            dispatch(getUserPosts())
+        }
     }
     const removeProfilePic = () => {
         editObj['profileImg'] = ""
@@ -336,11 +345,11 @@ const Profile = () => {
                                 <Typography variant='h6'>Post</Typography>
                             </Box>
                             <Box sx={{ cursor: "pointer" }} onClick={() => handleOpenFollow("followers")}>
-                                <Typography variant='h6'>0</Typography>
+                                <Typography variant='h6'>{followingFollowers.followers.length}</Typography>
                                 <Typography variant='h6'>Followers</Typography>
                             </Box>
                             <Box sx={{ cursor: "pointer" }} onClick={() => handleOpenFollow("following")}>
-                                <Typography variant='h6'>0</Typography>
+                                <Typography variant='h6'>{followingFollowers.following.length}</Typography>
                                 <Typography variant='h6'>Following</Typography>
                             </Box>
                         </Box>
@@ -422,17 +431,17 @@ const Profile = () => {
 
                     <Box sx={{ mt: 2 }}>
                         {
-                            openComment[1] && posts.find((a) => a.postId == openComment[1]['postId'])['comments'].map((x) => {
+                            openComment[1].comments?.map((x) => {
                                 return <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, justifyContent: "space-between" }}>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                        <img src={users.find((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
+                                        <img src={ profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
                                         <div>
-                                            <Typography variant='h6' className='fw-bold'>{users.find((a) => a.UserId == x.UserId).username}</Typography>
+                                            <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                             <Typography>{x.comment}</Typography>
                                         </div>
                                     </Box>
                                     <Box>
-                                        <Button onClick={() => deleteComment(x)} color='error'  ><DeleteIcon /></Button>
+                                        <Button onClick={() => deleteComments(x)} color='error'  ><DeleteIcon /></Button>
 
                                     </Box>
                                 </Box>

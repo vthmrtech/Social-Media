@@ -1,17 +1,21 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getApiResource, postApiData } from "../utils/axiosClient";
+import { deleteData, getApiResource, postApiData } from "../utils/axiosClient";
 import toast from "react-hot-toast";
 
 export const getUserPosts = createAsyncThunk(
   "posts/getUserPost",
   async (arg, thinkAPI) => {
+
     try {
-      const response = await postApiData("/posts/getUserPost", arg);
+      
+      const response = await getApiResource("/posts/getUserPost");
       if (response.success) {
+        
         return response.data;
       } else {
         toast.error(response.message);
       }
+
     } catch (error) {
       toast.error("Can't get User Posts");
       console.error("Can't get User Posts", error);
@@ -55,3 +59,76 @@ export const likeDislike = createAsyncThunk(
     }
   }
 );
+
+export const deletePosts = createAsyncThunk(
+  "posts/deletePosts",
+  async (arg, thinkAPI) => {
+    try {
+      const response = await deleteData("/posts/deletePosts", arg);
+      if (response.success) {
+        return response.data;
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Can't delete Posts");
+      console.error("Can't delete Posts", error);
+      throw error;
+    }
+  
+})
+
+export const addComment = createAsyncThunk(
+  "posts/addComment",
+  async (arg, thinkAPI) => {
+    try {
+      const response = await postApiData("/posts/addComment", arg);
+      if (response.success) {
+        return response.data;
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Can't add Comment");
+      console.error("Can't add Comment", error);
+      throw error;
+    }
+  }
+)
+
+export const deleteComment = createAsyncThunk(
+  "posts/deleteComment",
+  async (arg, thinkAPI) => {
+    try {
+      const response = await postApiData("/posts/deleteComment", arg);
+      if (response.success) {
+        return response.data;
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Can't delete Comment");
+      console.error("Can't delete Comment", error);
+      throw error;
+    }
+  }
+)
+
+
+export const getFollowingPosts = createAsyncThunk(
+  "posts/getFollowingPosts",
+  async (arg, thinkAPI) => {
+    try {
+      const response = await getApiResource("/posts/followingPosts");
+      if (response.success) {
+        return response.data;
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Can't get Following O Posts");
+      console.error("Can't get Following O Posts", error);
+      throw error;
+    }
+  }
+)

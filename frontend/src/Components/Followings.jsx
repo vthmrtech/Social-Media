@@ -3,34 +3,39 @@ import { Box, Container } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import profile from "../Assets/img/profile.jpg"
-import { blockList, declineRequest } from '../Store/Slice/FollowSlice'
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { getfollowers, pendingRequests } from '../Store/actions/requestsAction'
+import { getAllUsers } from '../Store/actions/userActions'
 
 
 const Followings = () => {
-    const users = useSelector((state) => state.users)
-    const allFollow = useSelector((state) => state.following).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
-    const [following, setfollowing] = useState({})
-    const [allfollowings, setallfollowings] = useState([])
+    const users = useSelector((state) => state.users.allUsers)
+    const allFollow = useSelector((state) => state.requests.following).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
+    console.log(allFollow)
+    const [followerObj, setfollowerObj] = useState({})
     const dispatch = useDispatch()
-    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("loginId")))
+    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("user")))
+    const sendRequest = useSelector((state) => state.requests.sentRequest)
+
+    const allFollowers = useSelector((state) => state.requests.followers)
 
 
-
-
+    
     const followers = () => {
-        return allFollow?.filter((x) => x.senderId == loginUser && x.status == "accepted").map((x) => x.reciverId).flatMap((x) => users.filter((a) => a.UserId == x))
+        console.log("followers  allFollow?.map((x) => x.reciverId).flatMap((x) => users.filter((a) => a.UserId == x)):", allFollow?.map((x) => x.receiverId));
+        return  allFollow?.map((y) => y.reciverId)
+        
     }
 
     const blockUser = (x) => {
-        following['time'] = new Date();
-        following['senderId'] = loginUser
-        following['reciverId'] = x.UserId
-        setfollowing({ ...following })
-        dispatch(blockList(following))
+        followerObj['time'] = new Date();
+        followerObj['senderId'] = x.UserId
+        followerObj['reciverId'] = loginUser
+        setfollowerObj({ ...followerObj })
+        // dispatch(blockList(followerObj))
     }
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
@@ -42,11 +47,8 @@ const Followings = () => {
     };
     const ITEM_HEIGHT = 48;
 
-    const unfollow = (x) => {
-        following['reciverId'] = x.UserId
-        following['senderId'] = loginUser
-        setfollowing({ ...following })
-        dispatch(declineRequest(following))
+    const unfollow = () =>{
+        console.log('unfollow')
     }
 
     return (

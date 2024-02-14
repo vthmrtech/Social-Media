@@ -8,7 +8,7 @@ import { Box, Typography } from '@mui/material'
 import { Facebook, Google } from '@mui/icons-material'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Context } from '../App'
-import { signup } from '../Store/actions/useractions'
+import { signup } from '../Store/actions/userActions'
 
 
 

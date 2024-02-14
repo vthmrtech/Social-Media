@@ -33,14 +33,24 @@ axiosClient.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
-export const getApiResource = async (endpoint,data) => {
+// function for making get request
+export const getApiResource = async (endpoint) => {
     try {
-        console.log(data)
-        const response = await axiosClient.get(endpoint,data);
+        const response = await axiosClient.get(endpoint);
         return response.data;
     } catch (error) {
         console.error('GET Error:', error);
+        throw error;
+    }
+};
+
+// Function for making DELETE request
+export const deleteData = async (endpoint , data) =>{
+    try {
+        const response = await axiosClient.delete(`${endpoint}/${data}`);
+        return response.data;
+    } catch (error) {
+        console.error('DELETE Error:', error);
         throw error;
     }
 };

@@ -1,16 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
+  getAllUsers,
   loginAccount,
   logoutAccount,
   signup,
   updateAccount,
-} from "../actions/useractions";
+} from "../actions/userActions";
 
 const Users = createSlice({
   name: "users",
   initialState: {
     isLoading: false,
     data: JSON.parse(localStorage.getItem('user')) || {},
+    allUsers :[],
     isLogin: false,
   },
   reducers: {},
@@ -58,7 +60,18 @@ const Users = createSlice({
           state.data = null;
           state.isLogin = false;
         window.location.href = "/login";
-      });
+      })
+      .addCase(getAllUsers.pending, (state) => {
+        state.isLoading = false;
+
+      })
+      .addCase(getAllUsers.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.allUsers = action.payload;
+      })
+      .addCase(getAllUsers.rejected, (state) => {
+        state.isLoading = false;
+      })
   },
 });
 

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import follow from "../models/followSchema";
 import users from "../models/usersSchema";
+import { userDetails } from "../middleware/middleware";
 
 export type follow = {
   receiverId?: string;
@@ -17,24 +18,24 @@ export const sentRequest = async (req: Request, res: Response) => {
     if (otherUser) {
       const request: follow | null = await follow.findOne({
         receiverId: req.body.sendTo,
-        senderId: req.body.UserId,
+        senderId: userDetails.UserId,
         status: "requested",
       });
 
       const accepted: follow | null = await follow.findOne({
-        receiverId: req.body.sendTo,
-        senderId: req.body.UserId,
+        receiverId: req.body.sendTo,    
+        senderId: userDetails.UserId,
         status: "accepted",
       });
       const blocked: follow | null = await follow.findOne({
         receiverId: req.body.sendTo,
-        senderId: req.body.UserId,
+        senderId: userDetails.UserId,
         status: "blocked",
       });
       if (!(request || accepted || blocked)) {
         const request: follow | any = await follow.create({
           receiverId: req.body.sendTo,
-          senderId: req.body.UserId,
+          senderId: userDetails.UserId,
           status: "requested",
           time: new Date(),
         });
@@ -71,14 +72,14 @@ export const sentRequest = async (req: Request, res: Response) => {
 export const accepted = async (req: Request, res: Response) => {
   try {
     const request: follow | null = await follow.findOne({
-      receiverId: req.body.UserId,
+      receiverId: userDetails.UserId,
       senderId: req.body.receivedFrom,
       status: "requested",
     });
     if (request) {
       const accepted: follow | null = await follow.findOneAndUpdate(
         {
-          receiverId: req.body.UserId,
+          receiverId: userDetails.UserId,
           senderId: req.body.receivedFrom,
           status: "requested",
         },
@@ -111,14 +112,14 @@ export const accepted = async (req: Request, res: Response) => {
 export const blocked = async (req: Request, res: Response) => {
   try {
     const request: follow | null = await follow.findOne({
-      receiverId: req.body.UserId,
+      receiverId: userDetails.UserId,
       senderId: req.body.receivedFrom,
       status: "requested",
     });
     if (request) {
       const blocked: follow | null = await follow.findOneAndUpdate(
         {
-          receiverId: req.body.UserId,
+          receiverId: userDetails.UserId,
           senderId: req.body.receivedFrom,
           status: "requested",
         },
@@ -151,7 +152,7 @@ export const blocked = async (req: Request, res: Response) => {
 export const blocklist = async (req: Request, res: Response) => {
   try {
     const blocked = await follow.find({
-      receiverId: req.body.UserId,
+      receiverId: userDetails.UserId,
       status: "blocked",
     });
     return res.status(200).json({
@@ -167,14 +168,14 @@ export const blocklist = async (req: Request, res: Response) => {
 export const deleteRequest = async (req: Request, res: Response) => {
   try {
     const request: follow | null = await follow.findOne({
-      receiverId: req.body.UserId,
-      senderId: req.body.receivedFrom,
+      receiverId: userDetails.UserId,
+      senderId: req.params.id,
       status: "requested",
     });
     if (request) {
       const deleteReq: any = await follow.findOneAndDelete({
-        receiverId: req.body.UserId,
-        senderId: req.body.receivedFrom,
+        receiverId: userDetails.UserId,
+        senderId: req.params.id,
         status: "requested",
       });
       return res.status(200).json({
@@ -197,14 +198,14 @@ export const deleteRequest = async (req: Request, res: Response) => {
 export const unBlock = async (req: Request, res: Response) => {
   try {
     const request: follow | null = await follow.findOne({
-      receiverId: req.body.UserId,
-      senderId: req.body.receivedFrom,
+      receiverId: userDetails.UserId,
+      senderId: req.params.id,
       status: "blocked",
     });
     if (request) {
       const deleteReq: any = await follow.findOneAndDelete({
-        receiverId: req.body.UserId,
-        senderId: req.body.receivedFrom,
+        receiverId: userDetails.UserId,
+        senderId: req.params.id,
         status: "blocked",
       });
       return res.status(200).json({
@@ -227,14 +228,14 @@ export const unBlock = async (req: Request, res: Response) => {
 export const removeFollower = async (req: Request, res: Response) => {
   try {
     const accept: follow | null = await follow.findOne({
-      receiverId: req.body.UserId,
-      senderId: req.body.removeFollower,
+      receiverId: userDetails.UserId,
+      senderId: req.params.id,
       status: "accepted",
     });
     if (accept) {
       const deleteReq: any = await follow.deleteOne({
-        receiverId: req.body.UserId,
-      senderId: req.body.removeFollower,
+        receiverId: userDetails.UserId,
+      senderId: req.params.id,
       status: "accepted",
       });
       return res.status(200).json({
@@ -258,14 +259,14 @@ export const removeFollower = async (req: Request, res: Response) => {
 export const unFollow = async (req: Request, res: Response) => {
   try {
     const accept: follow | null = await follow.findOne({
-      receiverId: req.body.unFollow,
-      senderId: req.body.UserId,
+      receiverId: req.params.id,
+      senderId: userDetails.UserId,
       status: "accepted",
     });
     if (accept) {
       const deleteReq: any = await follow.deleteOne({
-        receiverId: req.body.unFollow,
-      senderId: req.body.UserId,
+        receiverId: req.params.id,
+      senderId: userDetails.UserId,
       status: "accepted",
       });
       return res.status(200).json({
@@ -289,7 +290,7 @@ export const unFollow = async (req: Request, res: Response) => {
 export const followers = async (req: Request, res: Response) => {
   try {
     const allFollowers: follow[] = await follow.find({
-      receiverId: req.body.UserId,
+      receiverId: userDetails.UserId,
       status: "accepted",
     });
 
@@ -306,7 +307,7 @@ export const followers = async (req: Request, res: Response) => {
 export const followings = async (req: Request, res: Response) => {
   try {
     const allFollowings: follow[] = await follow.find({
-      senderId: req.body.UserId,
+      senderId: userDetails.UserId,
       status: "accepted",
     });
 
@@ -319,3 +320,37 @@ export const followings = async (req: Request, res: Response) => {
     console.log(error);
   }
 };
+
+export const getRequests = async (req: Request, res: Response) => {
+  try {
+    const allRequests: follow[] = await follow.find({
+      receiverId: userDetails.UserId,
+      status: "requested",
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: allRequests,
+      message: "Got all Requests",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export const pendingRequests = async (req: Request, res: Response) => {
+  try {
+    const allRequests: follow[] = await follow.find({
+      senderId: userDetails.UserId,
+      status: "requested",
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: allRequests,
+      message: "Got all Requests",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
