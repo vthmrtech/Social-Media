@@ -65,3 +65,16 @@ export const postApiData = async (endpoint, data) => {
         throw error;
     }
 };
+
+
+// Function for making PATCH request
+
+export const patchApiData = async (endpoint, data) => {
+    try {
+        const response = await axiosClient.patch(`${endpoint}/${data}`);
+        return response.data;
+    } catch (error) {
+        console.error('PATCH Error:', error);
+        throw error;
+    }
+}

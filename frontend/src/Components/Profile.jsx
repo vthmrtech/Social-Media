@@ -9,6 +9,7 @@ import uuid4 from 'uuid4';
 import Followers from './Followers';
 import Followings from './Followings';
 import { Favorite } from '@mui/icons-material';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import profile from "../Assets/img/profile.jpg"
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -218,33 +219,33 @@ const Profile = () => {
 
     const [likeObj, setlikeObj] = useState({})
 
-    const like = async (post) => {
-        likeObj['postId'] = post.postId
-        setlikeObj({ ...likeObj })
-        const response  = await dispatch(likeDislike(likeObj))
-        if(response.meta.requestStatus === "fulfilled"){
-            dispatch(getUserPosts())
-        }
-    }
-
+    
     const toBase64 = (file) =>
-        new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
         });
-
-    const deletepost = async (x) => {
-        const response = await dispatch(deletePosts(x.postId))
-        if(response.meta.requestStatus === "fulfilled"){
-            dispatch(getUserPosts())
+        
+        const deletepost = async (x) => {
+            const response = await dispatch(deletePosts(x.postId))
+            if(response.meta.requestStatus === "fulfilled"){
+                dispatch(getUserPosts())
+            }
         }
-    }
-
-
-
-    const comments = (e) => {
+        
+        const like = async (post) => {
+            likeObj['postId'] = post.postId
+            setlikeObj({ ...likeObj })
+            const response  = await dispatch(likeDislike(likeObj))
+            if(response.meta.requestStatus === "fulfilled"){
+                dispatch(getUserPosts())
+            }
+        }
+        
+        
+        const comments = (e) => {
         commentsObj[e.target.name] = e.target.value
         setcommentsObj({ ...commentsObj })
     }
@@ -375,8 +376,8 @@ const Profile = () => {
                                                 <div className='border border-2 position-relative posts' style={{ height: "315px" }}>
                                                     <img src={`http://localhost:4000/image/uploads/posts/${x.postImg}` ?? profile} alt="" style={{ minHeight: "270px", maxHeight: "270px" }} width="100%" />
                                                     <div className='px-3 d-flex justify-content-between mt-2'>
-                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className={`border-0 bg-transparent text-danger  ${x.like.includes(loginUser.UserId) ? 'text-danger' : 'text-dark'}`} onClick={() => like(x, loginUser)}><Favorite /></button><span>{x.like.length}</span></Typography>
-                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className='border-0 bg-transparent ' onClick={() => handleOpenComment(x)}><ChatBubbleRoundedIcon /></button><span>{x.comments.length}</span></Typography>
+                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className={`border-0 bg-transparent`} onClick={() => like(x, loginUser)}>{x.like?.includes(loginUser.UserId) ? <Favorite color='error'/> : <FavoriteBorderIcon/>}</button><span>{x.like?.length}</span></Typography>
+                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className='border-0 bg-transparent ' onClick={() => handleOpenComment(x)}><ChatBubbleRoundedIcon /></button><span>{x.comments?.length}</span></Typography>
                                                         <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><SendIcon sx={{ rotate: "320deg" }} /><span></span></Typography>
 
                                                     </div>
@@ -434,7 +435,7 @@ const Profile = () => {
                             openComment[1].comments?.map((x) => {
                                 return <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, justifyContent: "space-between" }}>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                        <img src={ profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
+                                        <img src={ x.userProfile ? `http://localhost:4000/image/uploads/profile/${x.userProfile}` : profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
                                         <div>
                                             <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                             <Typography>{x.comment}</Typography>

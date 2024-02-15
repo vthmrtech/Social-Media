@@ -125,6 +125,7 @@ export const getFollowingPosts = createAsyncThunk(
       } else {
         toast.error(response.message);
       }
+
     } catch (error) {
       toast.error("Can't get Following O Posts");
       console.error("Can't get Following O Posts", error);

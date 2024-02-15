@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { acceptRequest, blockList, declineRequest, getRequests, getfollowers, getfollowing, pendingRequests, removeFollow, sendRequests, unFollow } from "../actions/requestsAction";
+import { acceptRequest, blockList, blockUser, declineRequest, getBlocklist, getRequests, getfollowers, getfollowing, pendingRequests, removeFollow, sendRequests, unFollow, unblockUser } from "../actions/requestsAction";
 
 const Requests = createSlice({
         name: "requests",
@@ -115,6 +115,35 @@ const Requests = createSlice({
             .addCase(removeFollow.rejected, (state, action) =>{
                 state.isLoading = false;
             })
+            .addCase(blockUser.pending, (state, action) => {
+                state.isLoading = true;
+            })
+            .addCase(blockUser.fulfilled, (state, action) =>{
+                state.isLoading = false;
+            })
+            .addCase(blockUser.rejected, (state, action) =>{
+                state.isLoading = false;
+            })
+            .addCase(unblockUser.pending, (state, action) => {
+                state.isLoading = true;
+            })
+            .addCase(unblockUser.fulfilled, (state, action) =>{
+                state.isLoading = false;
+            })
+            .addCase(unblockUser.rejected, (state, action) =>{
+                state.isLoading = false;
+            })
+            .addCase(getBlocklist.pending, (state, action) => {
+                state.isLoading = true;
+            })
+            .addCase(getBlocklist.fulfilled, (state, action) =>{
+                state.isLoading = false;
+                state.blockedUser = action.payload
+            })
+            .addCase(getBlocklist.rejected, (state, action) =>{
+                state.isLoading = false;
+            })
+            
             
         },
     });

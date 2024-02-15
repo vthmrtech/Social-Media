@@ -7,35 +7,39 @@ import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { getfollowers, pendingRequests } from '../Store/actions/requestsAction'
+import { blockUser, getfollowers, getfollowing, unFollow } from '../Store/actions/requestsAction'
 import { getAllUsers } from '../Store/actions/userActions'
 
 
 const Followings = () => {
     const users = useSelector((state) => state.users.allUsers)
     const allFollow = useSelector((state) => state.requests.following).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
-    console.log(allFollow)
     const [followerObj, setfollowerObj] = useState({})
     const dispatch = useDispatch()
     const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("user")))
-    const sendRequest = useSelector((state) => state.requests.sentRequest)
 
-    const allFollowers = useSelector((state) => state.requests.followers)
+    useEffect(() => {
+        getInfo()
+    }, [])
+    const getInfo = () => {
+        dispatch(getfollowing())
+        dispatch(getfollowers())
+        dispatch(getAllUsers())
+
+    }
 
 
     
     const followers = () => {
-        console.log("followers  allFollow?.map((x) => x.reciverId).flatMap((x) => users.filter((a) => a.UserId == x)):", allFollow?.map((x) => x.receiverId));
-        return  allFollow?.map((y) => y.reciverId)
+        return  allFollow.map((x) =>x.receiverId).flatMap((x) => users.filter((a) => a.UserId == x))
         
     }
 
-    const blockUser = (x) => {
-        followerObj['time'] = new Date();
-        followerObj['senderId'] = x.UserId
-        followerObj['reciverId'] = loginUser
-        setfollowerObj({ ...followerObj })
-        // dispatch(blockList(followerObj))
+    const block =  async (x) => {
+        const response  = await dispatch(blockUser(x.UserId))
+        if(response.meta.requestStatus === "fulfilled"){
+            getInfo()
+        }
     }
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
@@ -47,8 +51,11 @@ const Followings = () => {
     };
     const ITEM_HEIGHT = 48;
 
-    const unfollow = () =>{
-        console.log('unfollow')
+    const unfollowUser = async (x) =>{
+        const response  = await dispatch(unFollow(x.UserId))
+        if(response.meta.requestStatus === "fulfilled"){
+            getInfo()
+        }
     }
 
     return (
@@ -64,12 +71,12 @@ const Followings = () => {
                             followers()?.map((x) => {
                                 return <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", my: 2 }}>
                                     <div className='d-flex align-items-center gap-4'>
-                                        <img src={x.profileImg ?? profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
+                                        <img src={ x.profileImg ? `http://localhost:4000/image/uploads/profile/${x.profileImg}`  : profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
                                         <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                     </div>
                                     <div className='d-flex'>
                                         <div>
-                                            <Button variant='contained' color='error' onClick={() => unfollow(x)}>UnFollow</Button>
+                                            <Button variant='contained' color='error' onClick={() => unfollowUser(x)}>UnFollow</Button>
                                         </div>
                                         <div className='d-inline-block'>
                                             <IconButton
@@ -99,7 +106,7 @@ const Followings = () => {
                                             >
 
                                                 <MenuItem onClick={handleClose}>
-                                                    <Button variant='outlined' color='error' onClick={() => blockUser(x)}>Block User</Button>
+                                                    <Button variant='outlined' color='error' onClick={() => block(x)}>Block User</Button>
                                                 </MenuItem>
 
                                             </Menu>

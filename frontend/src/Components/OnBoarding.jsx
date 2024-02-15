@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 const OnBoarding = () => {
   let isLogin = useContext(Context);
   const [error, seterror] = useState({});
+  const [profileImg, setProfileImg] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -18,10 +19,11 @@ const OnBoarding = () => {
     if (e.target.value != "") {
       if (e.target.type === "file") {
         if (e.target.files[0]?.type.includes("image")) {
+          setProfileImg(await toBase64(e.target.files[0]))
           onboarding[e.target.name] = e.target.files[0];
           delete error[e.target.name];
         } else {
-          onboarding[e.target.name] = profile;
+          onboarding[e.target.name] = "";
           error[e.target.name] = "Can Upload Only Image Files";
         }
       } else if (e.target.type == "date") {
@@ -75,9 +77,17 @@ const OnBoarding = () => {
       }
     }
   };
+  const toBase64 = (file) =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        });
   const removeProfilePic = () => {
-    onboarding["profileImg"] = profile;
+    onboarding["profileImg"] = "";
     setonboarding({ ...onboarding });
+    setProfileImg("")
   };
 
   return (
@@ -103,7 +113,7 @@ const OnBoarding = () => {
               <div className="w-100">
                 <div className="w-100 d-flex flex-column align-items-center">
                   <img
-                    src={onboarding.profileImg ?? profile}
+                    src={ profileImg !== "" ? profileImg : profile}
                     className="mt-3 me-5"
                     style={{
                       maxWidth: "200px",

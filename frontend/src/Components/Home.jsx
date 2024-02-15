@@ -5,14 +5,14 @@ import SendIcon from '@mui/icons-material/Send';
 import { HOC } from './Hoc'
 import { useDispatch, useSelector } from 'react-redux'
 import { Favorite } from '@mui/icons-material';
-// import { addComment, deleteComments, liked } from '../Store/Slice/PostsSlice';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import profile from "../Assets/img/profile.jpg"
 import OnBoarding from './OnBoarding';
 import { Context } from '../App';
 import { Form } from 'react-bootstrap';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { getFollowingPosts } from '../Store/actions/postAction';
+import { addComment, deleteComment, getFollowingPosts, likeDislike } from '../Store/actions/postAction';
 
 
 
@@ -21,11 +21,11 @@ const Home = () => {
     const [commentsObj, setcommentsObj] = useState({})
     const [likeObj, setlikeObj] = useState({})
     const [openComment, setopenComment] = useState([false, ""]);
-    const loginId = "id"
+    const loginId = JSON.parse(localStorage.getItem("user"))
     const dispatch = useDispatch()
     const users = useSelector((state) => state.users.data)
-    const allFollowings = useSelector((state) => state.following).filter((x) => x.senderId == loginId && x.status == "accepted")
-    const posts = useSelector((state) => state.posts.data).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
+    const posts = useSelector((state) => state.users.followingPosts).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
+
     const handleOpenComment = (x) => setopenComment([true, x]);
     const handleCloseComment = () => setopenComment([false, ""]);
     const style = {
@@ -39,36 +39,44 @@ const Home = () => {
         p: 4,
     };
 
-    const like = (post, loginId) => {
-        likeObj['UserId'] = post.UserId
+    const like = async (post) => {
         likeObj['postId'] = post.postId
-        likeObj['loginId'] = loginId
         setlikeObj({ ...likeObj })
-        // dispatch(liked(likeObj))
+        const response  = await dispatch(likeDislike(likeObj))
+        if(response.meta.requestStatus === "fulfilled"){
+            dispatch(getFollowingPosts())
+        }
     }
-
+    
+    
     const comments = (e) => {
-        commentsObj[e.target.name] = e.target.value
-        setcommentsObj({ ...commentsObj })
-    }
+    commentsObj[e.target.name] = e.target.value
+    setcommentsObj({ ...commentsObj })
+}
 
 
-    const addComents = (e) => {
-        e.preventDefault();
-        commentsObj['postId'] = openComment[1].postId
-        commentsObj['UserId'] = loginId
-        setcommentsObj({ ...commentsObj })
-        // dispatch(addComment(commentsObj))
-        // handleCloseComment()
-        setcommentsObj({})
+const addComents = async (e) => {
+    e.preventDefault();
+    commentsObj['postId'] = openComment[1].postId
+    setcommentsObj({ ...commentsObj })
+    const response = await dispatch(addComment(commentsObj))
+    if(response.meta.requestStatus === "fulfilled"){
+        handleCloseComment()
+        dispatch(getFollowingPosts())
     }
+    setcommentsObj({})
+}
 
-    const deleteComment = (x) => {
-        commentsObj['postId'] = openComment[1].postId
-        commentsObj['commentId'] = x.commentId
-        setcommentsObj({ ...commentsObj })
-        // dispatch(deleteComments(commentsObj))
+const deleteComments = async (x) => {
+    commentsObj['postId'] = openComment[1].postId
+    commentsObj['commentId'] = x.commentId
+    setcommentsObj({ ...commentsObj })
+    const response  = await dispatch(deleteComment(commentsObj))
+    if(response.meta.requestStatus === "fulfilled"){
+        handleCloseComment()
+        dispatch(getFollowingPosts())
     }
+}
 
     useEffect(() => {
       dispatch(getFollowingPosts())
@@ -95,13 +103,13 @@ const Home = () => {
                                             return <div className='p-1 w-25 ' >
                                                 <div className='border border-2' style={{ height: "351px" }}>
                                                     <div className='d-flex align-items-center gap-2'>
-                                                        <img src={users.find((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
-                                                        <Typography variant='h6' className='fw-bold'>{users.find((a) => a.UserId == x.UserId).username}</Typography>
+                                                        <img src={x.userPosts.userProfile ?`http://localhost:4000/image/uploads/profile/${x.userPosts.userProfile}` : profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
+                                                        <Typography variant='h6' className='fw-bold'>{x.userPosts.username}</Typography>
                                                     </div>
-                                                    <img src={x.postImg} alt="" style={{ minHeight: "270px", maxHeight: "270px" }} width="100%" />
+                                                    <img src={`http://localhost:4000/image/uploads/posts/${x.userPosts.postImg}`} alt="" style={{ minHeight: "270px", maxHeight: "270px" }} width="100%" />
                                                     <div className='px-3 d-flex justify-content-between'>
-                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className={`border-0 bg-transparent text-danger  ${x.like.includes(loginId) ? 'text-danger' : 'text-dark'}`} onClick={() => like(x, loginId)}><Favorite /></button><span>{x.like.length}</span></Typography>
-                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className='border-0 bg-transparent ' onClick={() => handleOpenComment(x)}><ChatBubbleRoundedIcon /></button><span>{x.comments.length}</span></Typography>
+                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className={`border-0 bg-transparent`} onClick={() => like(x.userPosts, loginId)}>{x.userPosts.like.includes(loginId.UserId) ? <Favorite color='error'/> : <FavoriteBorderIcon/>}</button><span>{x.userPosts.like.length}</span></Typography>
+                                                        <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><button className='border-0 bg-transparent ' onClick={() => handleOpenComment(x.userPosts)}><ChatBubbleRoundedIcon /></button><span>{x.userPosts.comments.length}</span></Typography>
                                                         <Typography variant='h5' sx={{ display: "flex", alignItems: "center", gap: 1 }}><SendIcon sx={{ rotate: "320deg" }} /><span></span></Typography>
 
                                                     </div>
@@ -117,7 +125,7 @@ const Home = () => {
                     </>
             }
 
-            <Modal
+<Modal
                 open={openComment[0]}
             >
 
@@ -126,18 +134,18 @@ const Home = () => {
 
                     <Box sx={{ mt: 2 }}>
                         {
-                            openComment[1] && posts.find((a) => a.postId == openComment[1]['postId'])['comments'].map((x) => {
+                            openComment[1].comments?.map((x) => {
                                 return <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, justifyContent: "space-between" }}>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                        <img src={users.find((a) => a.UserId == x.UserId).profileImg ?? profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
+                                        <img src={ x.userProfile ? `http://localhost:4000/image/uploads/profile/${x.userProfile}` : profile} alt="userProfile" height={"40px"} width={"40px"} className='rounded-circle' />
                                         <div>
-                                            <Typography variant='h6' className='fw-bold'>{users.find((a) => a.UserId == x.UserId).username}</Typography>
+                                            <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                             <Typography>{x.comment}</Typography>
                                         </div>
                                     </Box>
                                     <Box>
                                         {
-                                            x.UserId == loginId || posts.find((a) => a.postId == openComment[1]['postId'])['UserId'] == loginId
+                                            x.UserId == loginId.UserId 
                                                 ?
                                                 <Button onClick={() => deleteComment(x)} color='error'  ><DeleteIcon /></Button>
                                                 :

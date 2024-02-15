@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { getfollowers, sendRequests, pendingRequests, removeFollow } from '../Store/actions/requestsAction'
+import { getfollowers, sendRequests, pendingRequests, removeFollow, blockUser, getfollowing } from '../Store/actions/requestsAction'
 import { getAllUsers } from '../Store/actions/userActions'
 
 const Followers = () => {
@@ -28,6 +28,7 @@ const Followers = () => {
     
     const getInfo = () => {
         dispatch(getfollowers())
+        dispatch(getfollowing())
         dispatch(getAllUsers())
         dispatch(pendingRequests())
 
@@ -64,12 +65,11 @@ const Followers = () => {
         
     }
 
-    const blockUser = (x) => {
-        followerObj['time'] = new Date();
-        followerObj['senderId'] = x.UserId
-        followerObj['reciverId'] = loginUser
-        setfollowerObj({ ...followerObj })
-        // dispatch(blockList(followerObj))
+    const block =  async (x) => {
+        const response  = await dispatch(blockUser(x.UserId))
+        if(response.meta.requestStatus === "fulfilled"){
+            getInfo()
+        }
     }
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
@@ -110,13 +110,13 @@ const Followers = () => {
                                         </div>
                                         <div>
                                             {
-                                                allFollow.find(a => a.reciverId == x.UserId && a.senderId == loginUser.UserId && a.status == "accepted")
+                                                allfollowings.find(a => a.receiverId == x.UserId)
                                                     ?
-                                                    <Button variant='contained' color='error' onClick={() => unfollow(x)}>UnFollow</Button>
+                                                    <></>
                                                     :
                                                     <>
                                                         {
-                                                            sendRequest.find(a => a.receiverId == x.UserId && a.senderId == loginUser.UserId && a.status == "requested")
+                                                            sendRequest.find(a => a.receiverId == x.UserId)
                                                                 ?
                                                                 <Button variant='outlined' color='error' onClick={() => deleteRequest(x)}>Cancel Request</Button>
 
@@ -159,7 +159,7 @@ const Followers = () => {
                                                 >
 
                                                     <MenuItem    onClick={handleClose}>
-                                                        <Button  color='error' onClick={() => blockUser(x)}>Block User</Button>
+                                                        <Button  color='error' onClick={() => block(x)}>Block User</Button>
                                                     </MenuItem>
 
                                                 </Menu>

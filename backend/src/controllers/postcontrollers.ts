@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import posts from "../models/postSchema";
 import { v4 as uuid } from "uuid";
-import follow from "../models/followSchema";
+import requests from "../models/requestsSchema";
 import { userDetails } from "../middleware/middleware";
 import fs from "fs";
 import users from "../models/usersSchema";
@@ -39,7 +39,7 @@ export const getUserPost = async (req: Request, res: Response) => {
 
 export const getUserFollowingPosts = async (req: Request, res: Response) => {
   try {
-    const followingPosts : any = await follow.aggregate([
+    const followingPosts : any = await requests.aggregate([
       {
         $match: {
           senderId: userDetails.UserId,
@@ -77,7 +77,9 @@ export const addPosts = async (req: Request, res: Response) => {
     
       const newPost: post | any = await posts.create({
         ...req.body,
-         UserId: userDetails.UserId,
+        username : await users.findOne({UserId:userDetails.UserId}).then((result)=> result?.username),
+        userProfile : await users.findOne({UserId:userDetails.UserId}).then((result)=> result?.profileImg),
+        UserId: userDetails.UserId,
         postId: uuid(),
         time : new Date()
       });
@@ -187,7 +189,8 @@ export const addComment = async (req: Request, res: Response) => {
               comment: req.body.comment,
               commentId: uuid(),
               UserId: userDetails.UserId,
-              username : await users.findOne({UserId:userDetails.UserId}).then((result)=> result?.username)
+              username : await users.findOne({UserId:userDetails.UserId}).then((result)=> result?.username),
+              userProfile : await users.findOne({UserId:userDetails.UserId}).then((result)=> result?.profileImg)
             },
           },
         },
@@ -221,7 +224,6 @@ export const deleteComment = async (req: Request, res: Response) => {
           },
         },
       });
-      console.log("posts", post);
       const userPost = await posts.findOne({
         postId: req.body.postId,
         UserId: userDetails.UserId,

@@ -11,7 +11,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { getAllUsers } from '../Store/actions/userActions'
-import { acceptRequest, blockList, declineRequest, getRequests, getfollowers, getfollowing, pendingRequests, removeFollow, sendRequests, unFollow } from '../Store/actions/requestsAction'
+import { acceptRequest, blockList, blockUser, declineRequest, getRequests, getfollowers, getfollowing, pendingRequests, removeFollow, sendRequests, unFollow } from '../Store/actions/requestsAction'
 
 
 const RequestsPage = () => {
@@ -66,10 +66,11 @@ const RequestsPage = () => {
         }
     }
 
-    const blockUser = (x) => {
-        followingData['senderId'] = x.UserId
-        setfollowingData({ ...followingData })
-        // dispatch(blockList(followingData))
+    const block =  async (x) => {
+        const response  = await dispatch(blockUser(x.UserId))
+        if(response.meta.requestStatus === "fulfilled"){
+            getInfo()
+        }
     }
 
     const request = async (x) => {
@@ -119,17 +120,25 @@ const RequestsPage = () => {
     };
     const ITEM_HEIGHT = 48;
 
-    const btnShow = (x) => {
+    const followerBtn = (x) => {
+        if(followers.find((e) => e.senderId == x.UserId)){ 
+            return  <Button variant='outlined' color='error' onClick={() => removeFollower(x)}>Remove Follower</Button>
+            
+        }
+        else{
+            return <></>
+        }
+    }
+    const followingBtn = (x) => {
         if(pendingRequsts.find(a => a.receiverId == x.UserId && a.senderId == loginUser.UserId))
         {
             return <Button variant='outlined' color='error' onClick={() => deleteRequest(x)}>Cancel Request</Button>
         }
-        else if(followers.find((e) => e.senderId == x.UserId)){ 
-            return  <Button variant='outlined' color='error' onClick={() => removeFollower(x)}>Remove Follower</Button>
-            
-        }
         else if(following.find((e) => e.receiverId == x.UserId)){
             return <Button variant='outlined' color='error' onClick={() => unfollowUser(x)}>UnFollow</Button>
+        }
+        else if(followers.find((e) => e.senderId == x.UserId)){
+            return <Button variant='contained' color='primary' onClick={() => request(x)}>Follow Back</Button>
         }
         else{
             return <Button variant='contained' color='primary' onClick={() => request(x)}>Follow</Button>
@@ -190,7 +199,7 @@ const RequestsPage = () => {
                                                 >
 
                                                     <MenuItem    onClick={handleClose}>
-                                                        <Button variant='outlined' color='error' onClick={() => blockUser(x)}>Block User</Button>
+                                                        <Button variant='outlined' color='error' onClick={() => block(x)}>Block User</Button>
                                                     </MenuItem>
 
                                                 </Menu>
@@ -232,13 +241,16 @@ const RequestsPage = () => {
 
                                                 </>
                                                 :
-                                                <>
+                                                <Box sx={{display:"flex",columnGap : 2}}>
 
                                                     {
-                                                        btnShow(x)
+                                                        followingBtn(x)
+                                                    }
+                                                    {
+                                                    followerBtn(x)
                                                     }
 
-                                                </>
+                                                </Box>
                                         }
 
                                     </Box>

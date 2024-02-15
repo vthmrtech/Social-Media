@@ -14,12 +14,12 @@ import {
 import { useContext, useEffect, useState } from "react";
 import AdbIcon from "@mui/icons-material/Adb";
 import BlockIcon from "@mui/icons-material/Block";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { AccountCircle, Logout } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import { Context } from "../App";
 import { useDispatch, useSelector } from "react-redux";
-import { logoutAccount } from "../Store/actions/userActions";
+import {  logoutAccount } from "../Store/actions/userActions";
 import { getRequests } from "../Store/actions/requestsAction";
 
 export const HOC = (Component) => {
@@ -33,12 +33,15 @@ export const HOC = (Component) => {
     const [anchorElNav, setAnchorElNav] = useState(null);
     const [anchorElUser, setAnchorElUser] = useState(null);
     const dispatch = useDispatch();
+    const navigate  = useNavigate()
 
     useEffect(() =>{
       dispatch(getRequests())
       setloginUser(JSON.parse(localStorage.getItem("user")))
       
+      
     },[])
+    
     useEffect(() =>{
       setloginUser(userInfo)
       

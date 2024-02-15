@@ -6,6 +6,7 @@ import {
   signup,
   updateAccount,
 } from "../actions/userActions";
+import { getFollowingPosts } from "../actions/postAction";
 
 const Users = createSlice({
   name: "users",
@@ -14,6 +15,7 @@ const Users = createSlice({
     data: JSON.parse(localStorage.getItem('user')) || {},
     allUsers :[],
     isLogin: false,
+    followingPosts :[]
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -70,6 +72,17 @@ const Users = createSlice({
         state.allUsers = action.payload;
       })
       .addCase(getAllUsers.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(getFollowingPosts.pending, (state) => {
+        state.isLoading = false;
+
+      })
+      .addCase(getFollowingPosts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.followingPosts = action.payload;
+      })
+      .addCase(getFollowingPosts.rejected, (state) => {
         state.isLoading = false;
       })
   },

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { deleteData, getApiResource, postApiData } from "../utils/axiosClient";
+import { deleteData, getApiResource, patchApiData, postApiData } from "../utils/axiosClient";
 import toast from "react-hot-toast";
 
 
@@ -174,6 +174,61 @@ export const pendingRequests = createAsyncThunk(
       } catch (error) {
         toast.error("Can't decline Request");
         console.error("Can't decline Request", error);
+        throw error;
+      }
+    }
+  )
+
+
+  export const blockUser = createAsyncThunk(
+    "requests/blockUser",
+    async (arg, thunkAPI) => {
+      try {
+        const response = await patchApiData("/requests/blockUser", arg);
+        if (response.success) {
+          return response.data;
+        } else {
+          toast.error(response.message);
+        }
+      } catch (error) {
+        toast.error("Can't block User");
+        console.error("Can't block User", error);
+        throw error;
+      }
+    }
+  )
+
+  export const unblockUser = createAsyncThunk(
+    "requests/unblockUser",
+    async (arg, thunkAPI) => {
+      try {
+        const response = await deleteData("/requests/unblock", arg);
+        if (response.success) {
+          return response.data;
+        } else {
+          toast.error(response.message);
+        }
+      } catch (error) {
+        toast.error("Can't unblock User");
+        console.error("Can't unblock User", error);
+        throw error;
+      }
+    }
+  )
+
+  export const getBlocklist = createAsyncThunk(
+    "requests/getBlocklist",
+    async (arg, thunkAPI) => {
+      try {
+        const response = await getApiResource("/requests/blocklist");
+        if (response.success) {
+          return response.data;
+        } else {
+          toast.error(response.message);
+        }
+      } catch (error) {
+        toast.error("Can't get Blocklist");
+        console.error("Can't get Blocklist", error);
         throw error;
       }
     }

@@ -3,27 +3,38 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import profile from "../Assets/img/profile.jpg"
 import { HOC } from './Hoc'
+import { getBlocklist, unblockUser } from '../Store/actions/requestsAction'
+import { getAllUsers } from '../Store/actions/userActions'
 
 
 const BlockList = () => {
-    const users = useSelector((state) => state.users)
-    const allFollow = useSelector((state) => state.following).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
-    const [blockList, setblockList] = useState([])
-    const [blockObj, setblockObj] = useState([])
-    const [loginUser, setloginUser] = useState(JSON.parse(localStorage.getItem("loginId")))
+    const users = useSelector((state) => state.users.allUsers)
+    const blockedUsers = useSelector((state) => state.requests.blockedUser).slice().sort((date1, date2) => new Date(date2.time) - new Date(date1.time))
+    const loginUser = JSON.parse(localStorage.getItem("user"))
     const dispatch = useDispatch()
-    const unblockUser = () => {
-        return allFollow?.filter((x) => x.reciverId == loginUser && x.status == "blocked").map((x) => x.senderId).flatMap((x) => users.filter((a) => a.UserId == x))
+    
+    useEffect( () => {
+        getInfo()
+    },[])
+    
+    const getInfo = () =>{
+        dispatch(getAllUsers()) 
+        dispatch(getBlocklist())
     }
+    
+    const blocked = () => {
+        const followerBlocked = blockedUsers?.map((x) => x.receiverId).flatMap((x) => users.filter((a) => a.UserId == x && a.UserId !== loginUser.UserId))
+        const followingBlocked = blockedUsers?.map((x) => x.senderId).flatMap((x) => users.filter((a) => a.UserId == x && a.UserId !== loginUser.UserId))
+        const blocklist = [...followerBlocked,...followingBlocked]
+        return [...new Set(blocklist)]
+    }
+    const unblock = async (x) => {
+        
+        const response = await dispatch(unblockUser(x.UserId))
 
-
-
-    const unblock = (x) => {
-        blockObj['senderId'] = x.UserId
-        blockObj['reciverId'] = loginUser
-        setblockObj({ ...blockObj })
-        // dispatch(declineRequest(blockObj))
-
+        if(response.meta.requestStatus == "fulfilled"){
+            getInfo()
+        }
     }
 
 
@@ -32,16 +43,16 @@ const BlockList = () => {
             <Container>
                 <Typography variant='h4' className='fw-bold'>Block List</Typography>
                 {
-                   unblockUser().length === 0
+                   blocked().length === 0
                         ?
                         <Typography variant='h6' className='fw-bold my-3 text-center'>No Blocked Users</Typography>
                         :
                         <>
                             {
-                                unblockUser().map((x) => {
+                                blocked().map((x) => {
                                     return <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", my: 2 }}>
                                         <div className='d-flex align-items-center gap-4'>
-                                            <img src={x.profileImg ?? profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
+                                            <img src={x.profileImg ?  `http://localhost:4000/image/uploads/profile/${x.profileImg}` :  profile} alt="userProfile" height={"70px"} width={"70px"} className='rounded-circle' />
                                             <Typography variant='h6' className='fw-bold'>{x.username}</Typography>
                                         </div>
 

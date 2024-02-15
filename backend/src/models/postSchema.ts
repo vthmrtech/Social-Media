@@ -8,6 +8,8 @@ const postSchema = new Schema({
         postId:String,
         postImg: String,
         time:String,
+        username : String,
+        userProfile : String,
 });
 
 const posts  = model("posts",postSchema)

@@ -6,7 +6,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import { Box, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
-import { loginAccount } from '../Store/actions/userActions'
+import {  loginAccount} from '../Store/actions/userActions'
 
 
 const Login = () => {
@@ -48,6 +48,13 @@ const Login = () => {
                     isLogin.setLogin(true)
                     isLogin.setuserName(login.username)
                     navigate('/home')
+                    Swal.fire({
+                        title: "Loggin",
+                        text: "Loggin Successfully.",
+                        icon: "success",
+                        showConfirmButton: false,
+                        timer: 1500,
+                      });
             
             }
         }

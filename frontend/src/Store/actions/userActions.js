@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getApiResource, postApiData } from "../utils/axiosClient";
+
 import toast from "react-hot-toast";
+import { getApiResource, postApiData } from "../utils/axiosClient";
 
 export const getAllUsers = createAsyncThunk(
   "auth/getAllUsers",
@@ -18,7 +19,7 @@ export const getAllUsers = createAsyncThunk(
       throw error;
     }
   }
-)
+);
 
 export const signup = createAsyncThunk("auth/signup", async (arg, thinkAPI) => {
   try {
@@ -42,7 +43,6 @@ export const loginAccount = createAsyncThunk(
     try {
       const response = await postApiData("/auth/login", arg);
       if (response.success) {
-        toast.success("Login Success");
         localStorage.setItem("token", JSON.stringify(response.token));
         return response.user;
       } else {
@@ -61,7 +61,7 @@ export const updateAccount = createAsyncThunk(
   async (arg, thinkAPI) => {
     try {
       const response = await postApiData("/auth/update", arg);
-      if(response.success){
+      if (response.success) {
         return response.data;
       }
     } catch (error) {
@@ -75,7 +75,9 @@ export const logoutAccount = createAsyncThunk(
   "auth/logout",
   async (arg, thinkAPI) => {
     try {
+      window.location.href = "/login";
       localStorage.clear();
+      localStorage.setItem("isLogin", false);
       return "logout";
     } catch (error) {
       console.error("Can't logout", error);
